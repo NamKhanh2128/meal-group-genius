@@ -13,6 +13,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MainShoppingRouteImport } from './routes/_main/shopping'
 import { Route as MainFridgeRouteImport } from './routes/_main/fridge'
 import { Route as MainDashboardRouteImport } from './routes/_main/dashboard'
 
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MainShoppingRoute = MainShoppingRouteImport.update({
+  id: '/shopping',
+  path: '/shopping',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainFridgeRoute = MainFridgeRouteImport.update({
   id: '/fridge',
   path: '/fridge',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/dashboard': typeof MainDashboardRoute
   '/fridge': typeof MainFridgeRoute
+  '/shopping': typeof MainShoppingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/dashboard': typeof MainDashboardRoute
   '/fridge': typeof MainFridgeRoute
+  '/shopping': typeof MainShoppingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +76,19 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/_main/dashboard': typeof MainDashboardRoute
   '/_main/fridge': typeof MainFridgeRoute
+  '/_main/shopping': typeof MainShoppingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/dashboard' | '/fridge'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/dashboard'
+    | '/fridge'
+    | '/shopping'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/dashboard' | '/fridge'
+  to: '/' | '/login' | '/register' | '/dashboard' | '/fridge' | '/shopping'
   id:
     | '__root__'
     | '/'
@@ -82,6 +97,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/_main/dashboard'
     | '/_main/fridge'
+    | '/_main/shopping'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -121,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_main/shopping': {
+      id: '/_main/shopping'
+      path: '/shopping'
+      fullPath: '/shopping'
+      preLoaderRoute: typeof MainShoppingRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/fridge': {
       id: '/_main/fridge'
       path: '/fridge'
@@ -141,11 +164,13 @@ declare module '@tanstack/react-router' {
 interface MainRouteChildren {
   MainDashboardRoute: typeof MainDashboardRoute
   MainFridgeRoute: typeof MainFridgeRoute
+  MainShoppingRoute: typeof MainShoppingRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
   MainDashboardRoute: MainDashboardRoute,
   MainFridgeRoute: MainFridgeRoute,
+  MainShoppingRoute: MainShoppingRoute,
 }
 
 const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
