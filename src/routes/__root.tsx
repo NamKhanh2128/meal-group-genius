@@ -9,6 +9,9 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { GroupProvider } from "@/contexts/GroupContext";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -72,11 +75,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "NATEAT — Tiện ích đi chợ & lên thực đơn gia đình" },
+      { name: "description", content: "NATEAT giúp gia đình quản lý tủ lạnh, lên thực đơn và đi chợ thông minh." },
+      { name: "author", content: "NATEAT" },
+      { property: "og:title", content: "NATEAT" },
+      { property: "og:description", content: "Tủ lạnh thông minh, thực đơn gợi ý, đi chợ chia sẻ cho cả gia đình." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -113,7 +116,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthProvider>
+        <GroupProvider>
+          <Outlet />
+          <Toaster />
+        </GroupProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
