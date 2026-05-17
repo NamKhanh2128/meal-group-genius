@@ -78,11 +78,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "NATEAT — Tiện ích đi chợ & lên thực đơn gia đình" },
       { name: "description", content: "NATEAT giúp gia đình quản lý tủ lạnh, lên thực đơn và đi chợ thông minh." },
       { name: "author", content: "NATEAT" },
-      { property: "og:title", content: "NATEAT" },
-      { property: "og:description", content: "Tủ lạnh thông minh, thực đơn gợi ý, đi chợ chia sẻ cho cả gia đình." },
+      { property: "og:title", content: "NATEAT — Tiện ích đi chợ & lên thực đơn gia đình" },
+      { property: "og:description", content: "NATEAT giúp gia đình quản lý tủ lạnh, lên thực đơn và đi chợ thông minh." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "NATEAT — Tiện ích đi chợ & lên thực đơn gia đình" },
+      { name: "twitter:description", content: "NATEAT giúp gia đình quản lý tủ lạnh, lên thực đơn và đi chợ thông minh." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0daf2ad3-d191-474e-9efa-36069dea8130/id-preview-3311d3e4--a377bef6-ab3c-486d-b6fd-cc19c134ee3a.lovable.app-1778999692906.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0daf2ad3-d191-474e-9efa-36069dea8130/id-preview-3311d3e4--a377bef6-ab3c-486d-b6fd-cc19c134ee3a.lovable.app-1778999692906.png" },
     ],
     links: [
       {
