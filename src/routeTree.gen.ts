@@ -9,38 +9,182 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MainRouteImport } from './routes/_main'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as MainShoppingRouteImport } from './routes/_main/shopping'
+import { Route as MainProfileRouteImport } from './routes/_main/profile'
+import { Route as MainMealPlanRouteImport } from './routes/_main/meal-plan'
+import { Route as MainGroupsRouteImport } from './routes/_main/groups'
+import { Route as MainFridgeRouteImport } from './routes/_main/fridge'
+import { Route as MainDashboardRouteImport } from './routes/_main/dashboard'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MainRoute = MainRouteImport.update({
+  id: '/_main',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MainShoppingRoute = MainShoppingRouteImport.update({
+  id: '/shopping',
+  path: '/shopping',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainProfileRoute = MainProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainMealPlanRoute = MainMealPlanRouteImport.update({
+  id: '/meal-plan',
+  path: '/meal-plan',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainGroupsRoute = MainGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainFridgeRoute = MainFridgeRouteImport.update({
+  id: '/fridge',
+  path: '/fridge',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainDashboardRoute = MainDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => MainRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/dashboard': typeof MainDashboardRoute
+  '/fridge': typeof MainFridgeRoute
+  '/groups': typeof MainGroupsRoute
+  '/meal-plan': typeof MainMealPlanRoute
+  '/profile': typeof MainProfileRoute
+  '/shopping': typeof MainShoppingRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/dashboard': typeof MainDashboardRoute
+  '/fridge': typeof MainFridgeRoute
+  '/groups': typeof MainGroupsRoute
+  '/meal-plan': typeof MainMealPlanRoute
+  '/profile': typeof MainProfileRoute
+  '/shopping': typeof MainShoppingRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_main': typeof MainRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/_main/dashboard': typeof MainDashboardRoute
+  '/_main/fridge': typeof MainFridgeRoute
+  '/_main/groups': typeof MainGroupsRoute
+  '/_main/meal-plan': typeof MainMealPlanRoute
+  '/_main/profile': typeof MainProfileRoute
+  '/_main/shopping': typeof MainShoppingRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/dashboard'
+    | '/fridge'
+    | '/groups'
+    | '/meal-plan'
+    | '/profile'
+    | '/shopping'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/dashboard'
+    | '/fridge'
+    | '/groups'
+    | '/meal-plan'
+    | '/profile'
+    | '/shopping'
+    | '/admin/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/_main'
+    | '/login'
+    | '/register'
+    | '/_main/dashboard'
+    | '/_main/fridge'
+    | '/_main/groups'
+    | '/_main/meal-plan'
+    | '/_main/profile'
+    | '/_main/shopping'
+    | '/admin/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MainRoute: typeof MainRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
+  AdminUsersRoute: typeof AdminUsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_main': {
+      id: '/_main'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof MainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +192,85 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_main/shopping': {
+      id: '/_main/shopping'
+      path: '/shopping'
+      fullPath: '/shopping'
+      preLoaderRoute: typeof MainShoppingRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/profile': {
+      id: '/_main/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof MainProfileRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/meal-plan': {
+      id: '/_main/meal-plan'
+      path: '/meal-plan'
+      fullPath: '/meal-plan'
+      preLoaderRoute: typeof MainMealPlanRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/groups': {
+      id: '/_main/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof MainGroupsRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/fridge': {
+      id: '/_main/fridge'
+      path: '/fridge'
+      fullPath: '/fridge'
+      preLoaderRoute: typeof MainFridgeRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/dashboard': {
+      id: '/_main/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof MainDashboardRouteImport
+      parentRoute: typeof MainRoute
+    }
   }
 }
 
+interface MainRouteChildren {
+  MainDashboardRoute: typeof MainDashboardRoute
+  MainFridgeRoute: typeof MainFridgeRoute
+  MainGroupsRoute: typeof MainGroupsRoute
+  MainMealPlanRoute: typeof MainMealPlanRoute
+  MainProfileRoute: typeof MainProfileRoute
+  MainShoppingRoute: typeof MainShoppingRoute
+}
+
+const MainRouteChildren: MainRouteChildren = {
+  MainDashboardRoute: MainDashboardRoute,
+  MainFridgeRoute: MainFridgeRoute,
+  MainGroupsRoute: MainGroupsRoute,
+  MainMealPlanRoute: MainMealPlanRoute,
+  MainProfileRoute: MainProfileRoute,
+  MainShoppingRoute: MainShoppingRoute,
+}
+
+const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MainRoute: MainRouteWithChildren,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
+  AdminUsersRoute: AdminUsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
