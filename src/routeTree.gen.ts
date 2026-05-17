@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MainShoppingRouteImport } from './routes/_main/shopping'
+import { Route as MainProfileRouteImport } from './routes/_main/profile'
 import { Route as MainMealPlanRouteImport } from './routes/_main/meal-plan'
 import { Route as MainGroupsRouteImport } from './routes/_main/groups'
 import { Route as MainFridgeRouteImport } from './routes/_main/fridge'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const MainShoppingRoute = MainShoppingRouteImport.update({
   id: '/shopping',
   path: '/shopping',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainProfileRoute = MainProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => MainRoute,
 } as any)
 const MainMealPlanRoute = MainMealPlanRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/fridge': typeof MainFridgeRoute
   '/groups': typeof MainGroupsRoute
   '/meal-plan': typeof MainMealPlanRoute
+  '/profile': typeof MainProfileRoute
   '/shopping': typeof MainShoppingRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/fridge': typeof MainFridgeRoute
   '/groups': typeof MainGroupsRoute
   '/meal-plan': typeof MainMealPlanRoute
+  '/profile': typeof MainProfileRoute
   '/shopping': typeof MainShoppingRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_main/fridge': typeof MainFridgeRoute
   '/_main/groups': typeof MainGroupsRoute
   '/_main/meal-plan': typeof MainMealPlanRoute
+  '/_main/profile': typeof MainProfileRoute
   '/_main/shopping': typeof MainShoppingRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/fridge'
     | '/groups'
     | '/meal-plan'
+    | '/profile'
     | '/shopping'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/fridge'
     | '/groups'
     | '/meal-plan'
+    | '/profile'
     | '/shopping'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_main/fridge'
     | '/_main/groups'
     | '/_main/meal-plan'
+    | '/_main/profile'
     | '/_main/shopping'
   fileRoutesById: FileRoutesById
 }
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainShoppingRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/profile': {
+      id: '/_main/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof MainProfileRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/meal-plan': {
       id: '/_main/meal-plan'
       path: '/meal-plan'
@@ -210,6 +229,7 @@ interface MainRouteChildren {
   MainFridgeRoute: typeof MainFridgeRoute
   MainGroupsRoute: typeof MainGroupsRoute
   MainMealPlanRoute: typeof MainMealPlanRoute
+  MainProfileRoute: typeof MainProfileRoute
   MainShoppingRoute: typeof MainShoppingRoute
 }
 
@@ -218,6 +238,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainFridgeRoute: MainFridgeRoute,
   MainGroupsRoute: MainGroupsRoute,
   MainMealPlanRoute: MainMealPlanRoute,
+  MainProfileRoute: MainProfileRoute,
   MainShoppingRoute: MainShoppingRoute,
 }
 
