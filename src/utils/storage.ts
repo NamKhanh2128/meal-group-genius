@@ -1,24 +1,26 @@
-const PREFIX = "nateat:";
-
 export const storage = {
   get<T>(key: string, fallback: T): T {
-    if (typeof window === "undefined") return fallback;
     try {
-      const raw = localStorage.getItem(PREFIX + key);
+      const raw = localStorage.getItem(key);
       return raw ? (JSON.parse(raw) as T) : fallback;
     } catch {
       return fallback;
     }
   },
   set<T>(key: string, value: T) {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    localStorage.setItem(key, JSON.stringify(value));
   },
   remove(key: string) {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(PREFIX + key);
+    localStorage.removeItem(key);
   },
 };
 
-export const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
-export const uid = () => Math.random().toString(36).slice(2, 10);
+export function uid(prefix = "id") {
+  return `${prefix}-${crypto.randomUUID()}`;
+}
+
+export function wait(ms = 250) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export const delay = wait;

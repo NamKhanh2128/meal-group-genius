@@ -157,5 +157,6 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: Arial, "Times New Roman", sans-serif;
   }
 }
