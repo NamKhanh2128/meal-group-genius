@@ -1,5 +1,6 @@
 export type UserRole = "ADMIN" | "USER";
 export type ShoppingStatus = "DRAFT" | "DONE";
+export type ShoppingItemStatus = "PENDING" | "PARTIAL" | "COMPLETED";
 export type MealType = "Sáng" | "Trưa" | "Tối" | "Bữa phụ";
 export type ShoppingType = "daily" | "weekly";
 export type FoodCategory = "Rau củ" | "Thịt cá" | "Đồ khô" | "Sữa & Trứng" | "Gia vị" | "Khác";
@@ -64,6 +65,7 @@ export interface ShoppingList {
   status: ShoppingStatus;
   created_by: string;
   list_type: ShoppingType;
+  assigned_user_id?: string;
 }
 
 export interface ShoppingListItem {
@@ -72,6 +74,10 @@ export interface ShoppingListItem {
   food_id: string;
   quantity: number;
   bought_status: boolean;
+  bought_quantity?: number;
+  remaining_quantity?: number;
+  item_status?: ShoppingItemStatus;
+  inventory_synced_quantity?: number;
 }
 
 export interface FridgeItem {
@@ -105,6 +111,9 @@ export interface FamilyActivity {
   action_type: "shopping" | "fridge" | "meal" | "recipe" | "family";
   message: string;
   created_at: string;
+  target?: string;
+  quantity?: number;
+  status?: string;
 }
 
 export interface AuthSession {

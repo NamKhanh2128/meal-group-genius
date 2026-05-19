@@ -1,6 +1,6 @@
 import { endpoints } from "@/services/endpoints";
 import type { Food, Recipe, RecipeIngredient, RecipeSuggestion } from "@/types";
-import { addActivity, db, getSession, saveDb } from "./mockDb";
+import { addActivity, consumeInventory, db, getSession, saveDb } from "./mockDb";
 
 export type RecipeDetail = Recipe & { ingredients: Array<RecipeIngredient & { food: Food }> };
 
@@ -41,8 +41,7 @@ export const recipeApi = {
     const state = await db();
     const ingredients = state.recipe_ingredients.filter((item) => item.recipe_id === recipe_id);
     ingredients.forEach((ingredient) => {
-      const item = state.fridge_items.find((row) => row.family_id === family_id && row.food_id === ingredient.food_id);
-      if (item) item.quantity = Math.max(0, item.quantity - ingredient.quantity);
+      consumeInventory(state, { family_id, food_id: ingredient.food_id, quantity: ingredient.quantity });
     });
     const session = getSession();
     if (session) addActivity(state, family_id, session.user_id, "recipe", "nấu ăn và cập nhật lại nguyên liệu trong tủ lạnh");

@@ -57,7 +57,17 @@ export const mealApi = {
     const state = await db();
     const list = { shopping_list_id: uid("shopping"), family_id, title, plan_date: new Date().toISOString().slice(0, 10), status: "DRAFT" as const, created_by: user_id, list_type: "daily" as const };
     state.shopping_lists.unshift(list);
-    [...unique.values()].forEach((row) => state.shopping_list_items.push({ id: uid("shopping-item"), shopping_list_id: list.shopping_list_id, food_id: row.food.food_id, quantity: row.quantity, bought_status: false }));
+    [...unique.values()].forEach((row) => state.shopping_list_items.push({
+      id: uid("shopping-item"),
+      shopping_list_id: list.shopping_list_id,
+      food_id: row.food.food_id,
+      quantity: row.quantity,
+      bought_quantity: 0,
+      remaining_quantity: row.quantity,
+      item_status: "PENDING",
+      inventory_synced_quantity: 0,
+      bought_status: false,
+    }));
     addActivity(state, family_id, user_id, "shopping", "tự động tạo danh sách bổ sung nguyên liệu thiếu");
     saveDb(state);
     return list;

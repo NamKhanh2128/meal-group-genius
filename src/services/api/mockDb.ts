@@ -124,10 +124,37 @@ function initialDb(): Db {
 export async function db() {
   await wait();
   const current = storage.get<Db | null>(DB_KEY, null);
-  if (current) return current;
+  if (current) {
+    const normalized = normalizeDb(current);
+    storage.set(DB_KEY, normalized);
+    return normalized;
+  }
   const seeded = initialDb();
   storage.set(DB_KEY, seeded);
   return seeded;
+}
+
+function normalizeDb(current: Db): Db {
+  return {
+    ...current,
+    shopping_list_items: current.shopping_list_items.map((item) => {
+      const boughtQuantity = item.bought_quantity ?? (item.bought_status ? item.quantity : 0);
+      const remaining = Math.max(0, item.quantity - boughtQuantity);
+      return {
+        ...item,
+        bought_quantity: boughtQuantity,
+        remaining_quantity: remaining,
+        item_status: item.item_status ?? (boughtQuantity >= item.quantity ? "COMPLETED" : boughtQuantity > 0 ? "PARTIAL" : "PENDING"),
+        inventory_synced_quantity: item.inventory_synced_quantity ?? 0,
+        bought_status: boughtQuantity >= item.quantity,
+      };
+    }),
+    family_activities: current.family_activities.map((activity) => ({
+      ...activity,
+      target: activity.target ?? activity.message,
+      status: activity.status ?? "done",
+    })),
+  };
 }
 
 export function saveDb(next: Db) {
@@ -153,4 +180,61 @@ export function addActivity(nextDb: Db, family_id: string, user_id: string, acti
     { id: uid("act"), family_id, user_id, action_type, message, created_at: now() },
     ...nextDb.family_activities,
   ];
+}
+
+function assertValidQuantity(quantity: number) {
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    throw new Error("Số lượng phải lớn hơn 0.");
+  }
+}
+
+export function addInventory(nextDb: Db, payload: { family_id: string; food_id: string; quantity: number; expiry_date?: string; location?: FridgeItem["location"] }) {
+  assertValidQuantity(payload.quantity);
+  const location = payload.location ?? "Ngăn mát";
+  const expiryDate = payload.expiry_date ?? addDaysIso(7);
+  const existing = nextDb.fridge_items.find((item) => item.family_id === payload.family_id && item.food_id === payload.food_id && item.location === location);
+  if (existing) {
+    existing.quantity += payload.quantity;
+    if (expiryDate > existing.expiry_date) existing.expiry_date = expiryDate;
+    return existing;
+  }
+  const created: FridgeItem = {
+    fridge_item_id: uid("fridge"),
+    family_id: payload.family_id,
+    food_id: payload.food_id,
+    quantity: payload.quantity,
+    expiry_date: expiryDate,
+    location,
+  };
+  nextDb.fridge_items.push(created);
+  return created;
+}
+
+export function consumeInventory(nextDb: Db, payload: { family_id: string; food_id: string; quantity: number }) {
+  assertValidQuantity(payload.quantity);
+  let remaining = payload.quantity;
+  const rows = nextDb.fridge_items
+    .filter((item) => item.family_id === payload.family_id && item.food_id === payload.food_id && item.quantity > 0)
+    .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date));
+
+  for (const row of rows) {
+    if (remaining <= 0) break;
+    const used = Math.min(row.quantity, remaining);
+    row.quantity -= used;
+    remaining -= used;
+  }
+
+  nextDb.fridge_items = nextDb.fridge_items.filter((item) => item.quantity > 0);
+  return { consumed: payload.quantity - remaining, shortage: remaining };
+}
+
+export function updateInventory(nextDb: Db, fridge_item_id: string, patch: Partial<FridgeItem>) {
+  const item = nextDb.fridge_items.find((row) => row.fridge_item_id === fridge_item_id);
+  if (!item) throw new Error("Không tìm thấy thực phẩm.");
+  if (patch.quantity !== undefined && (!Number.isFinite(patch.quantity) || patch.quantity < 0)) {
+    throw new Error("Số lượng không hợp lệ.");
+  }
+  Object.assign(item, patch);
+  if (item.quantity === 0) nextDb.fridge_items = nextDb.fridge_items.filter((row) => row.fridge_item_id !== fridge_item_id);
+  return item;
 }

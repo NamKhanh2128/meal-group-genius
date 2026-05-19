@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 const MONTH_NAMES = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
 
-export function MealPlanCalendar() {
+export function MealPlanCalendar({ compact = false }: { compact?: boolean }) {
   const { weekDays, loading, prevWeek, nextWeek, goToCurrentWeek } = useMealPlanStore();
 
   const start = weekDays[0] ? new Date(weekDays[0]) : new Date();
@@ -53,7 +53,7 @@ export function MealPlanCalendar() {
         </div>
       ) : (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
-          {weekDays.map((date, i) => (
+          {(compact ? weekDays.slice(0, 1) : weekDays).map((date, i) => (
             <MealPlanDayCell key={date} date={date} dayIndex={i} />
           ))}
         </div>

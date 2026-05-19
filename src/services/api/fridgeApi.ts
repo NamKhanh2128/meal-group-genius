@@ -1,10 +1,19 @@
 import { endpoints } from "@/services/endpoints";
 import type { Food, FridgeItem } from "@/types";
 import { todayIso } from "@/utils/date";
-import { uid } from "@/utils/storage";
-import { addActivity, db, getSession, saveDb } from "./mockDb";
+import { addActivity, addInventory, db, getSession, saveDb, updateInventory } from "./mockDb";
 
 export type FridgeRow = FridgeItem & { food: Food };
+
+function validateInventoryPayload(payload: { food_id?: string; quantity?: number; expiry_date?: string; location?: string }, options: { allowZero?: boolean } = {}) {
+  if (!payload.food_id || payload.quantity === undefined || !payload.expiry_date || !payload.location) {
+    throw new Error("Vui lòng nhập đầy đủ thông tin thực phẩm.");
+  }
+  if (!Number.isFinite(payload.quantity) || payload.quantity < 0 || (!options.allowZero && payload.quantity === 0)) {
+    throw new Error(options.allowZero ? "Số lượng không được âm." : "Số lượng phải lớn hơn 0.");
+  }
+  if (payload.expiry_date < todayIso()) throw new Error("Ngày hết hạn không hợp lệ.");
+}
 
 export const fridgeApi = {
   endpoint: endpoints.fridge,
@@ -15,26 +24,22 @@ export const fridgeApi = {
       .map((item) => ({ ...item, food: state.foods.find((food) => food.food_id === item.food_id)! }));
   },
   async create(payload: Omit<FridgeItem, "fridge_item_id">): Promise<FridgeItem> {
-    if (!payload.food_id || !payload.quantity || !payload.expiry_date || !payload.location) throw new Error("Vui lòng nhập đầy đủ thông tin thực phẩm.");
-    if (payload.expiry_date < todayIso()) throw new Error("Hạn sử dụng phải từ hôm nay trở đi.");
+    validateInventoryPayload(payload);
     const state = await db();
-    const item: FridgeItem = { ...payload, fridge_item_id: uid("fridge") };
-    state.fridge_items.push(item);
+    const item = addInventory(state, payload);
     const session = getSession();
     if (session) addActivity(state, payload.family_id, session.user_id, "fridge", "thêm thực phẩm vào tủ lạnh");
     saveDb(state);
     return item;
   },
   async update(fridge_item_id: string, payload: Omit<FridgeItem, "fridge_item_id" | "family_id">): Promise<FridgeItem> {
-    if (payload.expiry_date < todayIso()) throw new Error("Hạn sử dụng phải từ hôm nay trở đi.");
+    validateInventoryPayload({ ...payload, food_id: payload.food_id }, { allowZero: true });
     const state = await db();
-    const index = state.fridge_items.findIndex((item) => item.fridge_item_id === fridge_item_id);
-    if (index < 0) throw new Error("Không tìm thấy thực phẩm.");
-    state.fridge_items[index] = { ...state.fridge_items[index], ...payload };
+    const item = updateInventory(state, fridge_item_id, payload);
     const session = getSession();
-    if (session) addActivity(state, state.fridge_items[index].family_id, session.user_id, "fridge", "cập nhật thực phẩm trong tủ lạnh");
+    if (session) addActivity(state, item.family_id, session.user_id, "fridge", "cập nhật thực phẩm trong tủ lạnh");
     saveDb(state);
-    return state.fridge_items[index];
+    return item;
   },
   async remove(fridge_item_id: string) {
     const state = await db();

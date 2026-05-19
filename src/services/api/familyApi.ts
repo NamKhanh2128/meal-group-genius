@@ -33,4 +33,38 @@ export const familyApi = {
     saveDb(state);
     return { ...user, password: undefined };
   },
+  async assignShoppingTask(family_id: string, shopping_list_id: string, user_id: string, actor_id: string) {
+    const state = await db();
+    const list = state.shopping_lists.find((item) => item.family_id === family_id && item.shopping_list_id === shopping_list_id);
+    if (!list) throw new Error("Không tìm thấy danh sách mua sắm.");
+    if (!state.family_members.some((member) => member.family_id === family_id && member.user_id === user_id)) throw new Error("Người dùng không thuộc gia đình.");
+    list.assigned_user_id = user_id;
+    state.family_activities.unshift({
+      id: uid("act"),
+      family_id,
+      user_id: actor_id,
+      action_type: "family",
+      message: "phân công nhiệm vụ mua hàng",
+      target: list.title,
+      status: "assigned",
+      created_at: new Date().toISOString(),
+    });
+    saveDb(state);
+  },
+  async respondShoppingTask(family_id: string, shopping_list_id: string, user_id: string, status: "accepted" | "rejected") {
+    const state = await db();
+    const list = state.shopping_lists.find((item) => item.family_id === family_id && item.shopping_list_id === shopping_list_id);
+    if (!list) throw new Error("Không tìm thấy danh sách mua sắm.");
+    state.family_activities.unshift({
+      id: uid("act"),
+      family_id,
+      user_id,
+      action_type: "family",
+      message: status === "accepted" ? "nhận nhiệm vụ mua hàng" : "từ chối nhiệm vụ mua hàng",
+      target: list.title,
+      status,
+      created_at: new Date().toISOString(),
+    });
+    saveDb(state);
+  },
 };

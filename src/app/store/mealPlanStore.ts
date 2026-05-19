@@ -50,6 +50,8 @@ interface MealPlanState {
   closeEdit: () => void;
   addRecipeToSlot: (date: string, slot: MealSlot, recipeId: string) => Promise<void>;
   removeRecipeFromSlot: (date: string, slot: MealSlot, recipeId: string) => Promise<void>;
+  replaceRecipeInSlot: (date: string, slot: MealSlot, oldRecipeId: string, newRecipeId: string) => Promise<void>;
+  removeSuggestion: (recipeId: string) => void;
   getSlotRecipes: (date: string, slot: MealSlot) => RecipeDetail[];
   getMissingForRecipe: (recipeId: string) => RecipeSuggestion["missing"];
   createShoppingFromMissing: (familyId: string, userId: string) => Promise<void>;
@@ -143,6 +145,26 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
     saveDb(state);
     await get().loadWeek(familyId);
   },
+
+  replaceRecipeInSlot: async (date, slot, oldRecipeId, newRecipeId) => {
+    const { familyId } = get();
+    if (!familyId) return;
+    const state = await db();
+    state.meal_plans = state.meal_plans.filter(
+      (p) => !(p.family_id === familyId && p.meal_date === date && p.meal_type === slot && p.recipe_id === oldRecipeId),
+    );
+    if (!state.meal_plans.some((p) => p.family_id === familyId && p.meal_date === date && p.meal_type === slot && p.recipe_id === newRecipeId)) {
+      state.meal_plans.push({ meal_plan_id: uid("meal"), family_id: familyId, meal_date: date, meal_type: slot, recipe_id: newRecipeId });
+    }
+    const session = getSession();
+    if (session) addActivity(state, familyId, session.user_id, "meal", "thay thế món trong kế hoạch bữa ăn");
+    saveDb(state);
+    await get().loadWeek(familyId);
+  },
+
+  removeSuggestion: (recipeId) => set((state) => ({
+    suggestions: state.suggestions.filter((suggestion) => suggestion.recipe.recipe_id !== recipeId),
+  })),
 
   getSlotRecipes: (date, slot) => {
     const { groups, recipes } = get();

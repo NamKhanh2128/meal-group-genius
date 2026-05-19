@@ -1,20 +1,14 @@
 import { Plus } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/app/store/authStore";
 
 export function SplashPage() {
   const navigate = useNavigate();
-  const bootstrap = useAuthStore((state) => state.bootstrap);
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    const timer = window.setTimeout(async () => {
-      await bootstrap();
-      navigate(user ? "/dashboard" : "/login", { replace: true });
-    }, 650);
+    const timer = window.setTimeout(() => navigate("/login", { replace: true }), 650);
     return () => window.clearTimeout(timer);
-  }, [bootstrap, navigate, user]);
+  }, [navigate]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-[#7655aa] text-white">

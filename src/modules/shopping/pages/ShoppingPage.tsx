@@ -1,10 +1,9 @@
-import { CheckCircle2, ClipboardCheck, Plus, ShoppingCart, UserCheck, UserX } from "lucide-react";
+import { ClipboardCheck, Plus, ShoppingCart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/app/store/authStore";
 import { useShoppingStore } from "@/app/store/shoppingStore";
-import { BackButton } from "@/components/common/PageActions";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { AppModal } from "@/components/modal/AppModal";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ export function ShoppingPage() {
   const { lists, load, complete } = useShoppingStore();
   const [tab, setTab] = useState<Tab>("today");
   const [completeId, setCompleteId] = useState<string | null>(null);
-  const [inventoryId, setInventoryId] = useState<string | null>(null);
   useEffect(() => { void load(family.family_id); }, [family.family_id, load]);
 
   const filtered = useMemo(() => lists.filter((list) => {
@@ -26,30 +24,42 @@ export function ShoppingPage() {
     return list.list_type === "weekly" && list.status !== "DONE";
   }), [lists, tab]);
 
-  async function updateInventory(id: string) {
-    await complete(id, family.family_id);
-    toast.success("Cập nhật vào tủ lạnh thành công.");
+  async function completeList(id: string) {
+    try {
+      await complete(id, family.family_id);
+      toast.success("Danh sách đã hoàn tất.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Danh sách còn item partial hoặc pending.");
+    }
   }
 
   return (
     <>
-      <ScreenHeader title="Quản lý danh sách mua sắm" subtitle="Tabs hôm nay/tuần này/đã hoàn thành, nhận nhiệm vụ, tick purchased và cập nhật tồn kho." actions={<div className="flex gap-2"><BackButton /><Button asChild className="rounded-[8px] bg-[#ffb11f]"><Link to="/shopping/create"><Plus className="mr-2 h-4 w-4" />Tạo danh sách</Link></Button></div>} />
+      <ScreenHeader
+        title="Quản lý danh sách mua sắm"
+        subtitle="Shopping chỉ quản lý checklist, quantity và trạng thái. Nhận mua/từ chối mua nằm trong Nhóm gia đình."
+        actions={<Button asChild className="rounded-[8px] bg-[#ffb11f]"><Link to="/shopping/create"><Plus className="mr-2 h-4 w-4" />Tạo danh sách</Link></Button>}
+      />
       <div className="mb-5 flex flex-wrap gap-2">
         {(["today", "week", "done"] as Tab[]).map((item) => <Button key={item} variant={tab === item ? "default" : "outline"} className={tab === item ? "bg-[#7655aa]" : ""} onClick={() => setTab(item)}>{item === "today" ? "Hôm nay" : item === "week" ? "Tuần này" : "Đã hoàn thành"}</Button>)}
       </div>
       <div className="grid gap-4">
         {filtered.map((list) => {
-          const bought = list.items.filter((item) => item.bought_status).length;
-          const allBought = list.items.length > 0 && bought === list.items.length;
+          const completed = list.items.filter((item) => item.item_status === "COMPLETED").length;
+          const partial = list.items.filter((item) => item.item_status === "PARTIAL").length;
+          const progress = list.items.length ? Math.round((completed / list.items.length) * 100) : 0;
+          const assigned = list.assigned_user_id ? "Đã phân công" : "Chưa phân công";
           return (
             <section key={list.shopping_list_id} className="rounded-[8px] bg-white p-5 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div><h3 className="text-xl font-extrabold">{list.title}</h3><p className="text-sm text-[#746d82]">{list.list_type === "weekly" ? "Theo tuần" : "Theo ngày"} · {formatDate(list.plan_date)} · {bought}/{list.items.length} đã mua</p></div>
+                <div className="min-w-[240px] flex-1">
+                  <h3 className="text-xl font-extrabold">{list.title}</h3>
+                  <p className="text-sm text-[#746d82]">{list.list_type === "weekly" ? "Theo tuần" : "Theo ngày"} · {formatDate(list.plan_date)} · {completed}/{list.items.length} completed · {partial} partial · {assigned}</p>
+                  <div className="mt-3 h-2 rounded-full bg-[#eee9f7]"><div className="h-full rounded-full bg-[#31c875] transition-all" style={{ width: `${progress}%` }} /></div>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={() => toast.success("Đã nhận nhiệm vụ mua hàng.")}><UserCheck className="mr-2 h-4 w-4" />Nhận nhiệm vụ</Button>
-                  <Button variant="outline" onClick={() => toast.warning("Đã từ chối nhiệm vụ mua hàng.")}><UserX className="mr-2 h-4 w-4" />Từ chối</Button>
                   <Button asChild variant="outline" className="rounded-[8px]"><Link to={`/shopping/${list.shopping_list_id}`}><ShoppingCart className="mr-2 h-4 w-4" />Xem</Link></Button>
-                  <Button onClick={() => allBought ? setCompleteId(list.shopping_list_id) : setInventoryId(list.shopping_list_id)} className="rounded-[8px] bg-[#31c875]" disabled={list.status === "DONE"}><CheckCircle2 className="mr-2 h-4 w-4" />Cập nhật tủ lạnh</Button>
+                  <Button onClick={() => setCompleteId(list.shopping_list_id)} className="rounded-[8px] bg-[#31c875]" disabled={list.status === "DONE" || progress < 100}>Hoàn tất</Button>
                 </div>
               </div>
             </section>
@@ -57,11 +67,8 @@ export function ShoppingPage() {
         })}
         {filtered.length === 0 && <div className="rounded-[8px] bg-white p-10 text-center shadow-card"><ClipboardCheck className="mx-auto h-10 w-10 text-[#7655aa]" /><b className="mt-3 block">Không có danh sách trong tab này</b><Button asChild className="mt-4 bg-[#ffb11f]"><Link to="/shopping/create">Tạo danh sách</Link></Button></div>}
       </div>
-      <AppModal open={Boolean(completeId)} onOpenChange={(open) => !open && setCompleteId(null)} type="confirm" title="Hoàn tất mua sắm?" primaryLabel="Hoàn tất" secondaryLabel="Tiếp tục" onPrimary={() => completeId && setInventoryId(completeId)}>
-        Tất cả mặt hàng đã được đánh dấu đã mua. Bạn có muốn hoàn tất danh sách?
-      </AppModal>
-      <AppModal open={Boolean(inventoryId)} onOpenChange={(open) => !open && setInventoryId(null)} type="warning" title="Cập nhật vào tủ lạnh?" primaryLabel="Cập nhật" secondaryLabel="Để sau" onPrimary={() => inventoryId && updateInventory(inventoryId)}>
-        Các mặt hàng đã mua sẽ được thêm vào fridge_items.
+      <AppModal open={Boolean(completeId)} onOpenChange={(open) => !open && setCompleteId(null)} type="confirm" title="Hoàn tất mua sắm?" primaryLabel="Hoàn tất" secondaryLabel="Tiếp tục" onPrimary={() => completeId && completeList(completeId)}>
+        Danh sách chỉ chuyển DONE nếu tất cả mặt hàng đã COMPLETED.
       </AppModal>
     </>
   );

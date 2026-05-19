@@ -1,11 +1,11 @@
-import { Home, LogOut, Plus, Refrigerator, ScrollText, Search, ShoppingCart, Users, UserRound } from "lucide-react";
+import { Home, LogOut, Plus, Refrigerator, ScrollText, ShoppingCart, Users, UserRound } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/app/store/authStore";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { NotificationDropdown } from "@/components/layout/NotificationDropdown";
 import { AppModal } from "@/components/modal/AppModal";
-import { useState } from "react";
 
 const navItems = [
   { to: "/dashboard", label: "Trang chủ", icon: Home },
@@ -35,22 +35,13 @@ export function MainLayout() {
           <button
             onClick={() => navigate("/shopping/create")}
             className="grid h-11 w-11 place-items-center rounded-xl bg-[#ffb11f] text-white shadow-sm transition hover:scale-105"
-            title="Tạo nhanh"
+            title="Tạo danh sách mua sắm"
           >
             <Plus className="h-6 w-6" strokeWidth={3} />
           </button>
-          <div className="text-2xl font-extrabold tracking-wide text-[#5b368d]">NATEAT</div>
-        </div>
-
-        <div className="hidden min-w-[220px] items-center gap-2 rounded-xl bg-[#f3f0f8] px-3 py-2 text-[#9188a1] lg:flex">
-          <Search className="h-4 w-4" />
-          <input
-            className="w-full bg-transparent text-sm outline-none"
-            placeholder="Tìm kiếm nhanh"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") navigate("/meal-planner");
-            }}
-          />
+          <button onClick={() => navigate("/dashboard")} className="text-2xl font-extrabold tracking-wide text-[#5b368d]">
+            NATEAT
+          </button>
         </div>
 
         <nav className="hidden items-center gap-1 xl:flex">
@@ -74,18 +65,12 @@ export function MainLayout() {
 
         <div className="flex items-center gap-3">
           <NotificationDropdown />
-          <NavLink
-            to="/profile"
-            className="grid h-11 w-11 place-items-center rounded-full bg-[#ffbd2c] text-[#4b3178]"
-            title="Hồ sơ"
-          >
+          <NavLink to="/profile" className="grid h-11 w-11 place-items-center rounded-full bg-[#ffbd2c] text-[#4b3178]" title="Hồ sơ">
             <UserRound className="h-6 w-6" />
           </NavLink>
           <div className="hidden leading-tight lg:block">
             <div className="text-sm font-bold">{user?.full_name}</div>
-            <div className="text-xs text-muted-foreground">
-              {user?.role === "ADMIN" ? "Quản trị" : "Thành viên"}
-            </div>
+            <div className="text-xs text-muted-foreground">{user?.role === "ADMIN" ? "Quản trị" : "Thành viên"}</div>
           </div>
           <button
             onClick={() => setLogoutOpen(true)}
