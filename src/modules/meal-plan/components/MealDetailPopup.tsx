@@ -1,9 +1,9 @@
-import { AlertTriangle, ChefHat, Clock, Eye, Flame, Plus, ShoppingCart, Star, Trash2 } from "lucide-react";
+﻿import { AlertTriangle, ChefHat, Clock, Eye, Flame, Plus, ShoppingCart, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { type MealSlot, useMealPlanStore } from "@/app/store/mealPlanStore";
-import type { RecipeDetail } from "@/services/api/recipeApi";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { type MealSlot, useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
+import type { RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import { RecipePicker } from "./RecipePicker";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

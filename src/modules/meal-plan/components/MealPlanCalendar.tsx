@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
-import { useMealPlanStore } from "@/app/store/mealPlanStore";
+﻿import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
 import { MealPlanDayCell } from "./MealPlanDayCell";
 import { Button } from "@/components/ui/button";
 

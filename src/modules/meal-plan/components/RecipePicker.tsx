@@ -1,7 +1,7 @@
-import { AlertTriangle, CheckCircle2, Clock, Search } from "lucide-react";
+﻿import { AlertTriangle, CheckCircle2, Clock, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useMealPlanStore } from "@/app/store/mealPlanStore";
-import type { RecipeDetail } from "@/services/api/recipeApi";
+import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
+import type { RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import { Input } from "@/components/ui/input";
 
 const FILTERS = ["Tất cả", "Thịt", "Rau", "Healthy", "Low carb", "Nhanh"] as const;

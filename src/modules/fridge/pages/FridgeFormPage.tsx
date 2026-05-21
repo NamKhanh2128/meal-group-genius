@@ -1,20 +1,20 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+﻿import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAuthStore } from "@/app/store/authStore";
-import { useFridgeStore } from "@/app/store/fridgeStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { BackButton } from "@/components/common/PageActions";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { useFridgeStore } from "@/modules/fridge/store/fridgeStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
+import { BackButton } from "@/shared/components/PageActions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { foodApi } from "@/services/api/foodApi";
+import { foodApi } from "@/shared/api/foodApi";
 import type { Food } from "@/types";
-import { foodLocations } from "@/constants/options";
+import { foodLocations } from "@/shared/constants/options";
 import { fridgeFormSchema } from "../schema";
 
 type Values = z.infer<typeof fridgeFormSchema>;

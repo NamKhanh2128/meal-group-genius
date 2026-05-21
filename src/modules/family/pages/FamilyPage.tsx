@@ -1,16 +1,16 @@
-import { MailPlus, Users } from "lucide-react";
+﻿import { MailPlus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { AppModal } from "@/components/modal/AppModal";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
+import { AppModal } from "@/shared/components/AppModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { familyApi } from "@/services/api/familyApi";
-import { shoppingApi, type ShoppingListDetail } from "@/services/api/shoppingApi";
+import { familyApi } from "@/modules/family/api/familyApi";
+import { shoppingApi, type ShoppingListDetail } from "@/modules/shopping/api/shoppingApi";
 import type { FamilyActivity, User } from "@/types";
-import { relativeTime } from "@/utils/date";
+import { relativeTime } from "@/shared/utils/date";
 
 export function FamilyPage() {
   const family = useAuthStore((state) => state.family)!;

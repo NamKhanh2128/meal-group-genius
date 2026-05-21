@@ -1,11 +1,11 @@
-import { Home, LogOut, Plus, Refrigerator, ScrollText, ShoppingCart, Users, UserRound } from "lucide-react";
+﻿import { Home, LogOut, Plus, Refrigerator, ScrollText, ShoppingCart, Users, UserRound } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { NotificationDropdown } from "@/components/layout/NotificationDropdown";
-import { AppModal } from "@/components/modal/AppModal";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { BottomNav } from "@/shared/components/BottomNav";
+import { NotificationDropdown } from "@/shared/components/NotificationDropdown";
+import { AppModal } from "@/shared/components/AppModal";
 
 const navItems = [
   { to: "/dashboard", label: "Trang chủ", icon: Home },

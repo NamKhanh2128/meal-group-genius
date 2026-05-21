@@ -1,6 +1,6 @@
-import { Plus } from "lucide-react";
-import type { MealSlot } from "@/app/store/mealPlanStore";
-import { useMealPlanStore } from "@/app/store/mealPlanStore";
+﻿import { Plus } from "lucide-react";
+import type { MealSlot } from "@/modules/meal-plan/store/mealPlanStore";
+import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
 
 const SLOTS: MealSlot[] = ["Sáng", "Trưa", "Tối"] as MealSlot[];
 

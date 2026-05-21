@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight, Plus, Trash2, Eye } from "lucide-react";
-import { useMealPlanStore } from "@/app/store/mealPlanStore";
-import type { MealSlot } from "@/app/store/mealPlanStore";
+﻿import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
+import type { MealSlot } from "@/modules/meal-plan/store/mealPlanStore";
 import { Button } from "@/components/ui/button";
 
 const SLOTS: MealSlot[] = ["Sáng", "Trưa", "Tối"];

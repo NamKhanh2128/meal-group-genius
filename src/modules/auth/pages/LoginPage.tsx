@@ -1,12 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+﻿import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, LogIn, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAuthStore } from "@/app/store/authStore";
-import { AppModal } from "@/components/modal/AppModal";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { AppModal } from "@/shared/components/AppModal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

@@ -1,9 +1,9 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+﻿import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAuthStore } from "@/app/store/authStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { changePasswordSchema } from "../schemas";

@@ -1,21 +1,22 @@
-import { Download, Edit, Filter, Plus, Search, SortAsc, Trash2, Utensils, Zap } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Download, Edit, Filter, Plus, Search, SortAsc, Trash2, Utensils, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { useFridgeStore } from "@/app/store/fridgeStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { AppModal } from "@/components/modal/AppModal";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { useFridgeStore } from "@/modules/fridge/store/fridgeStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
+import { AppModal } from "@/shared/components/AppModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { foodCategories, foodLocations } from "@/constants/options";
-import { daysUntil, formatDate } from "@/utils/date";
+import { foodCategories, foodLocations } from "@/shared/constants/options";
+import { daysUntil, formatDate } from "@/shared/utils/date";
 
 export function FridgePage() {
   const navigate = useNavigate();
   const family = useAuthStore((state) => state.family)!;
-  const { items, load, remove, update, loading } = useFridgeStore();
+  const { items, load, remove, removeMany, update, loading } = useFridgeStore();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [expiry, setExpiry] = useState("all");
@@ -25,6 +26,11 @@ export function FridgePage() {
   const [consumeId, setConsumeId] = useState<string | null>(null);
   const [consumeQuantity, setConsumeQuantity] = useState(1);
   const [sortAsc, setSortAsc] = useState(true);
+
+  // Multi-delete state
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   useEffect(() => { void load(family.family_id); }, [family.family_id, load]);
 
@@ -37,17 +43,47 @@ export function FridgePage() {
     return matchesName && matchesCategory && matchesExpiry && matchesLocation;
   }).sort((a, b) => sortAsc ? daysUntil(a.expiry_date) - daysUntil(b.expiry_date) : daysUntil(b.expiry_date) - daysUntil(a.expiry_date)), [items, query, category, expiry, location, sortAsc]);
 
+  function handleDeleteButtonClick() {
+    if (!deleteMode) {
+      setDeleteMode(true);
+      setSelectedIds([]);
+      return;
+    }
+    if (selectedIds.length === 0) {
+      setDeleteMode(false);
+      return;
+    }
+    setBulkDeleteOpen(true);
+  }
+
+  function toggleSelectItem(id: string) {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
   async function confirmDelete() {
     if (!deleteId) return;
     const deleted = items.find((item) => item.fridge_item_id === deleteId);
     await remove(deleteId, family.family_id);
-    toast.success("Đã xóa", { action: { label: "Hoàn tác", onClick: () => toast.info(`Khôi phục ${deleted?.food.food_name ?? "thực phẩm"} sẽ gọi API undo delete.`) } });
+    toast.success("Đã xóa", {
+      action: { label: "Hoàn tác", onClick: () => toast.info(`Khôi phục ${deleted?.food.food_name ?? "thực phẩm"} sẽ gọi API undo delete.`) },
+    });
+  }
+
+  async function confirmBulkDelete() {
+    await removeMany(selectedIds, family.family_id);
+    const count = selectedIds.length;
+    setSelectedIds([]);
+    setDeleteMode(false);
+    toast.success(`Đã xóa ${count} thực phẩm.`);
   }
 
   async function confirmConsume() {
     const item = items.find((row) => row.fridge_item_id === consumeId);
     if (!item) return;
-    if (!Number.isFinite(consumeQuantity) || consumeQuantity <= 0) return toast.error("Số lượng dùng phải lớn hơn 0.");
+    if (!Number.isFinite(consumeQuantity) || consumeQuantity <= 0) {
+      toast.error("Số lượng dùng phải lớn hơn 0.");
+      return;
+    }
     await update(item.fridge_item_id, { food_id: item.food_id, quantity: Math.max(0, item.quantity - consumeQuantity), expiry_date: item.expiry_date, location: item.location }, family.family_id);
     toast.success("Đã cập nhật số lượng trong tủ lạnh.");
   }
@@ -63,12 +99,41 @@ export function FridgePage() {
     URL.revokeObjectURL(url);
   }
 
+  const deleteButtonLabel = !deleteMode
+    ? "Xóa"
+    : selectedIds.length > 0
+      ? `Xóa ${selectedIds.length} mục`
+      : "Hủy chọn";
+
   return (
     <>
       <ScreenHeader
         title="Quản lý tủ lạnh"
         subtitle="Hiển thị danh sách kho thực phẩm, lọc, thêm, cập nhật, xóa và xem cảnh báo hết hạn theo UC003."
-        actions={<Button asChild className="rounded-[8px] bg-[#ffb11f]"><Link to="/fridge/add"><Plus className="mr-2 h-4 w-4" />Thêm thực phẩm</Link></Button>}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {deleteMode && (
+              <span className="self-center text-sm font-semibold text-[#7655aa]">
+                {selectedIds.length} đã chọn
+              </span>
+            )}
+            <Button
+              variant={deleteMode && selectedIds.length > 0 ? "destructive" : "outline"}
+              onClick={handleDeleteButtonClick}
+              className={deleteMode && selectedIds.length === 0 ? "border-[#7655aa] text-[#7655aa]" : ""}
+            >
+              {deleteMode && selectedIds.length === 0
+                ? <X className="mr-2 h-4 w-4" />
+                : <Trash2 className="mr-2 h-4 w-4" />}
+              {deleteButtonLabel}
+            </Button>
+            <Button asChild className="rounded-[8px] bg-[#ffb11f]">
+              <Link to="/fridge/add">
+                <Plus className="mr-2 h-4 w-4" />Thêm thực phẩm
+              </Link>
+            </Button>
+          </div>
+        }
       />
 
       {expiring.length > 0 && (
@@ -84,39 +149,158 @@ export function FridgePage() {
       )}
 
       <section className="rounded-[8px] bg-white p-5 shadow-card">
+        {/* Toolbar */}
         <div className="flex flex-wrap gap-3">
-          <div className="relative min-w-[260px] flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-[#9188a1]" /><Input value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" placeholder="Search by name" /></div>
+          <div className="relative min-w-[260px] flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-[#9188a1]" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" placeholder="Search by name" />
+          </div>
           <Button variant="outline" onClick={() => setFilterOpen(true)}><Filter className="mr-2 h-4 w-4" />Lọc</Button>
           <Button variant="outline" onClick={() => setSortAsc((value) => !value)}><SortAsc className="mr-2 h-4 w-4" />Sort</Button>
           <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" />Export</Button>
         </div>
+
+        {/* Delete mode: select-all banner */}
+        {deleteMode && (
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#f3f0fb] px-4 py-2 text-sm text-[#7655aa]">
+            <Checkbox
+              checked={selectedIds.length === filtered.length && filtered.length > 0}
+              onCheckedChange={(checked) =>
+                setSelectedIds(checked ? filtered.map((i) => i.fridge_item_id) : [])
+              }
+            />
+            <span className="font-medium">Chọn tất cả ({filtered.length} thực phẩm)</span>
+          </div>
+        )}
+
+        {/* Mobile cards */}
         <div className="mt-5 grid gap-3 lg:hidden">
-          {filtered.map((item) => <FoodCard key={item.fridge_item_id} item={item} onDelete={() => setDeleteId(item.fridge_item_id)} />)}
+          {filtered.map((item) => (
+            <FoodCard
+              key={item.fridge_item_id}
+              item={item}
+              deleteMode={deleteMode}
+              selected={selectedIds.includes(item.fridge_item_id)}
+              onToggleSelect={() => toggleSelectItem(item.fridge_item_id)}
+              onDelete={() => setDeleteId(item.fridge_item_id)}
+            />
+          ))}
         </div>
+
+        {/* Desktop table */}
         <div className="mt-5 hidden overflow-hidden rounded-[8px] border lg:block">
           <table className="w-full text-sm">
-            <thead className="bg-[#fbfacb] text-left"><tr><th className="p-3">Name</th><th>Quantity</th><th>Unit</th><th>HSD</th><th>Category</th><th>Location</th><th className="text-right pr-3">Actions</th></tr></thead>
+            <thead className="bg-[#fbfacb] text-left">
+              <tr>
+                {deleteMode && <th className="p-3 w-10" />}
+                <th className="p-3">Name</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>HSD</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th className="text-right pr-3">Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {filtered.map((item) => <tr key={item.fridge_item_id} className="border-t"><td className="p-3 font-bold">{item.food.icon} {item.food.food_name}</td><td>{item.quantity}</td><td>{item.food.unit}</td><td><span className={daysUntil(item.expiry_date) <= 3 ? "font-bold text-red-600" : ""}>{formatDate(item.expiry_date)}</span></td><td>{item.food.category}</td><td>{item.location}</td><td className="space-x-2 pr-3 text-right"><Button asChild size="sm" variant="outline"><Link to={`/fridge/edit/${item.fridge_item_id}`}><Edit className="h-4 w-4" /></Link></Button><Button size="sm" variant="outline" onClick={() => { setConsumeId(item.fridge_item_id); setConsumeQuantity(1); }}><Utensils className="h-4 w-4" /></Button><Button size="sm" variant="destructive" onClick={() => setDeleteId(item.fridge_item_id)}><Trash2 className="h-4 w-4" /></Button></td></tr>)}
-              {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-[#746d82]">{loading ? "Đang tải..." : "Tủ lạnh trống hoặc không có kết quả phù hợp."}</td></tr>}
+              {filtered.map((item) => (
+                <tr
+                  key={item.fridge_item_id}
+                  className={`border-t ${deleteMode && selectedIds.includes(item.fridge_item_id) ? "bg-[#f3f0fb]" : ""}`}
+                >
+                  {deleteMode && (
+                    <td className="p-3">
+                      <Checkbox
+                        checked={selectedIds.includes(item.fridge_item_id)}
+                        onCheckedChange={() => toggleSelectItem(item.fridge_item_id)}
+                      />
+                    </td>
+                  )}
+                  <td className="p-3 font-bold">{item.food.icon} {item.food.food_name}</td>
+                  <td>{item.quantity}</td>
+                  <td>{item.food.unit}</td>
+                  <td>
+                    <span className={daysUntil(item.expiry_date) <= 3 ? "font-bold text-red-600" : ""}>
+                      {formatDate(item.expiry_date)}
+                    </span>
+                  </td>
+                  <td>{item.food.category}</td>
+                  <td>{item.location}</td>
+                  <td className="space-x-2 pr-3 text-right">
+                    {!deleteMode && (
+                      <>
+                        <Button asChild size="sm" variant="outline">
+                          <Link to={`/fridge/edit/${item.fridge_item_id}`}><Edit className="h-4 w-4" /></Link>
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => { setConsumeId(item.fridge_item_id); setConsumeQuantity(1); }}>
+                          <Utensils className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => setDeleteId(item.fridge_item_id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    {deleteMode && (
+                      <span className="text-xs text-[#9188a1] italic">
+                        {selectedIds.includes(item.fridge_item_id) ? "✓ Đã chọn" : "Chọn để xóa"}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={deleteMode ? 8 : 7} className="p-8 text-center text-[#746d82]">
+                    {loading ? "Đang tải..." : "Tủ lạnh trống hoặc không có kết quả phù hợp."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
+      {/* Filter modal */}
       <AppModal open={filterOpen} onOpenChange={setFilterOpen} title="Bộ lọc tủ lạnh" type="info" primaryLabel="Áp dụng" secondaryLabel="Đóng">
         <div className="space-y-3">
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tên thực phẩm" />
-          <Select value={category} onValueChange={setCategory}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Tất cả danh mục</SelectItem>{foodCategories.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>
-          <Select value={expiry} onValueChange={setExpiry}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Tất cả HSD</SelectItem><SelectItem value="soon">Sắp hết hạn</SelectItem><SelectItem value="expired">Đã hết hạn</SelectItem></SelectContent></Select>
-          <Select value={location} onValueChange={setLocation}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Tất cả vị trí</SelectItem>{foodLocations.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả danh mục</SelectItem>
+              {foodCategories.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={expiry} onValueChange={setExpiry}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả HSD</SelectItem>
+              <SelectItem value="soon">Sắp hết hạn</SelectItem>
+              <SelectItem value="expired">Đã hết hạn</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={location} onValueChange={setLocation}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả vị trí</SelectItem>
+              {foodLocations.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={() => { setQuery(""); setCategory("all"); setExpiry("all"); setLocation("all"); }}>Reset</Button>
         </div>
       </AppModal>
 
+      {/* Single delete modal */}
       <AppModal open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)} type="confirm" title="Xóa thực phẩm?" primaryLabel="Xóa" secondaryLabel="Hủy" onPrimary={confirmDelete}>
         Hành động này không thể hoàn tác.
       </AppModal>
+
+      {/* Bulk delete modal */}
+      <AppModal open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} type="confirm" title="Xóa hàng loạt?" primaryLabel="Xóa" secondaryLabel="Hủy" onPrimary={confirmBulkDelete}>
+        Hành động này sẽ xóa <b>{selectedIds.length}</b> thực phẩm khỏi tủ lạnh và không thể hoàn tác.
+      </AppModal>
+
+      {/* Consume modal */}
       <AppModal open={Boolean(consumeId)} onOpenChange={(open) => !open && setConsumeId(null)} type="confirm" title="Dùng nhanh thực phẩm" primaryLabel="Cập nhật" secondaryLabel="Hủy" onPrimary={confirmConsume}>
         <Input type="number" min={0.01} step="0.01" value={consumeQuantity} onChange={(event) => setConsumeQuantity(Number(event.target.value))} />
       </AppModal>
@@ -124,12 +308,38 @@ export function FridgePage() {
   );
 }
 
-function FoodCard({ item, onDelete }: { item: ReturnType<typeof useFridgeStore.getState>["items"][number]; onDelete: () => void }) {
+function FoodCard({
+  item,
+  deleteMode,
+  selected,
+  onToggleSelect,
+  onDelete,
+}: {
+  item: ReturnType<typeof useFridgeStore.getState>["items"][number];
+  deleteMode: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <div className="rounded-[8px] border bg-white p-4">
-      <div className="flex items-center justify-between"><b>{item.food.icon} {item.food.food_name}</b><span className="text-sm">{item.quantity} {item.food.unit}</span></div>
+    <div
+      className={`rounded-[8px] border bg-white p-4 transition ${deleteMode && selected ? "border-[#7655aa] bg-[#f3f0fb]" : ""}`}
+      onClick={deleteMode ? onToggleSelect : undefined}
+    >
+      <div className="flex items-center justify-between">
+        {deleteMode && (
+          <Checkbox checked={selected} onCheckedChange={onToggleSelect} onClick={(e) => e.stopPropagation()} />
+        )}
+        <b className={deleteMode ? "ml-2" : ""}>{item.food.icon} {item.food.food_name}</b>
+        <span className="text-sm">{item.quantity} {item.food.unit}</span>
+      </div>
       <div className="mt-2 text-sm text-[#746d82]">{item.food.category} · {item.location} · HSD {formatDate(item.expiry_date)}</div>
-      <div className="mt-3 flex gap-2"><Button asChild size="sm" variant="outline"><Link to={`/fridge/edit/${item.fridge_item_id}`}>Edit</Link></Button><Button size="sm" variant="destructive" onClick={onDelete}>Delete</Button></div>
+      {!deleteMode && (
+        <div className="mt-3 flex gap-2">
+          <Button asChild size="sm" variant="outline"><Link to={`/fridge/edit/${item.fridge_item_id}`}>Edit</Link></Button>
+          <Button size="sm" variant="destructive" onClick={onDelete}>Delete</Button>
+        </div>
+      )}
     </div>
   );
 }

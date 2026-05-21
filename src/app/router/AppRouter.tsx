@@ -1,6 +1,6 @@
-import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+﻿import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
-import { useAuthStore } from "@/app/store/authStore";
+import { useAuthStore } from "@/modules/auth/store/authStore";
 import { LoginPage } from "@/modules/auth/pages/LoginPage";
 import { RegisterPage } from "@/modules/auth/pages/RegisterPage";
 import { DashboardPage } from "@/pages/DashboardPage";

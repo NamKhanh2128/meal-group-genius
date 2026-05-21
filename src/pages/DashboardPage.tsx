@@ -1,16 +1,16 @@
-import { AlertCircle, CheckCircle2, Clock, Flame, Play, Refrigerator, ScrollText, ShoppingCart, Star } from "lucide-react";
+﻿import { AlertCircle, CheckCircle2, Clock, Flame, Play, Refrigerator, ScrollText, ShoppingCart, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuthStore } from "@/app/store/authStore";
-import { fridgeApi, type FridgeRow } from "@/services/api/fridgeApi";
-import { recipeApi, type RecipeDetail } from "@/services/api/recipeApi";
-import { shoppingApi, type ShoppingListDetail } from "@/services/api/shoppingApi";
-import { mealApi } from "@/services/api/mealApi";
-import { familyApi } from "@/services/api/familyApi";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { fridgeApi, type FridgeRow } from "@/modules/fridge/api/fridgeApi";
+import { recipeApi, type RecipeDetail } from "@/modules/recipe/api/recipeApi";
+import { shoppingApi, type ShoppingListDetail } from "@/modules/shopping/api/shoppingApi";
+import { mealApi } from "@/modules/meal-plan/api/mealApi";
+import { familyApi } from "@/modules/family/api/familyApi";
 import type { FamilyActivity, MealPlanGroup, RecipeSuggestion, User } from "@/types";
-import { daysUntil, formatDate, relativeTime, todayIso } from "@/utils/date";
+import { daysUntil, formatDate, relativeTime, todayIso } from "@/shared/utils/date";
 import { Button } from "@/components/ui/button";
-import { AppModal } from "@/components/modal/AppModal";
+import { AppModal } from "@/shared/components/AppModal";
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user)!;

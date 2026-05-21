@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { todayIso } from "@/utils/date";
+﻿import { z } from "zod";
+import { todayIso } from "@/shared/utils/date";
 
 export const fridgeFormSchema = z.object({
   food_id: z.string().min(1, "Chọn thực phẩm."),

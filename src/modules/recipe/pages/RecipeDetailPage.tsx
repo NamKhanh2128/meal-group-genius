@@ -1,11 +1,11 @@
-import { ChefHat, PackageMinus } from "lucide-react";
+﻿import { ChefHat, PackageMinus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
 import { Button } from "@/components/ui/button";
-import { recipeApi, type RecipeDetail } from "@/services/api/recipeApi";
+import { recipeApi, type RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import type { RecipeSuggestion } from "@/types";
 
 export function RecipeDetailPage() {

@@ -1,13 +1,13 @@
-import { ClipboardCheck, Plus, ShoppingCart } from "lucide-react";
+﻿import { ClipboardCheck, Plus, ShoppingCart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuthStore } from "@/app/store/authStore";
-import { useShoppingStore } from "@/app/store/shoppingStore";
-import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { AppModal } from "@/components/modal/AppModal";
+import { useAuthStore } from "@/modules/auth/store/authStore";
+import { useShoppingStore } from "@/modules/shopping/store/shoppingStore";
+import { ScreenHeader } from "@/shared/components/ScreenHeader";
+import { AppModal } from "@/shared/components/AppModal";
 import { Button } from "@/components/ui/button";
-import { formatDate, todayIso } from "@/utils/date";
+import { formatDate, todayIso } from "@/shared/utils/date";
 
 type Tab = "today" | "week" | "done";
 
