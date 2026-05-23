@@ -18,11 +18,15 @@ function getMondayOfWeek(anchor: Date): Date {
   return d;
 }
 
+function localIso(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function getWeekDays(monday: Date): string[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(d.getDate() + i);
-    return d.toISOString().slice(0, 10);
+    return localIso(d);
   });
 }
 

@@ -14,7 +14,6 @@ const SLOT_LABELS: Record<MealSlot, string> = { Sáng: "Breakfast", Trưa: "Lunc
 export function MealDetailPopup() {
   const {
     editingDate,
-    editingSlot,
     closeEdit,
     getSlotRecipes,
     getMissingForRecipe,
@@ -99,7 +98,6 @@ export function MealDetailPopup() {
         <div className="flex-1 overflow-y-auto p-5">
           {(pickerSlot || replaceTarget) && (
             <div className="space-y-4">
-              <button type="button" onClick={() => { setPickerSlot(null); setReplaceTarget(null); }} className="text-sm font-semibold text-[#7655aa]">Quay lại chi tiết bữa ăn</button>
               <RecipePicker onSelect={handleSelect} disabled={submitting} />
             </div>
           )}
@@ -107,7 +105,6 @@ export function MealDetailPopup() {
           {viewingRecipe && !pickerSlot && !replaceTarget && (
             <RecipeDetailView
               recipe={viewingRecipe}
-              onBack={() => setViewingRecipe(null)}
               onRemoveSuggestion={() => {
                 removeSuggestion(viewingRecipe.recipe_id);
                 toast.success("Đã xóa khỏi danh sách gợi ý.");
@@ -174,12 +171,11 @@ export function MealDetailPopup() {
   );
 }
 
-function RecipeDetailView({ recipe, onBack, onRemoveSuggestion }: { recipe: RecipeDetail; onBack: () => void; onRemoveSuggestion: () => void }) {
+function RecipeDetailView({ recipe, onRemoveSuggestion }: { recipe: RecipeDetail; onRemoveSuggestion: () => void }) {
   const missing = useMealPlanStore((s) => s.getMissingForRecipe(recipe.recipe_id));
 
   return (
     <div className="space-y-4">
-      <button type="button" onClick={onBack} className="text-sm font-semibold text-[#7655aa]">Quay lại chi tiết bữa ăn</button>
       <img src={recipe.image_url} alt={recipe.recipe_name} className="h-56 w-full rounded-xl object-cover" />
       <div className="grid gap-2 text-sm sm:grid-cols-3">
         <span className="inline-flex items-center gap-1 rounded-lg bg-[#f8f6fb] px-3 py-2"><Clock className="h-4 w-4" />{recipe.time_minutes} phút</span>

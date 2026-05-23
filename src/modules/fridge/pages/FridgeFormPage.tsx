@@ -8,7 +8,6 @@ import { z } from "zod";
 import { useAuthStore } from "@/modules/auth/store/authStore";
 import { useFridgeStore } from "@/modules/fridge/store/fridgeStore";
 import { ScreenHeader } from "@/shared/components/ScreenHeader";
-import { BackButton } from "@/shared/components/PageActions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,7 +39,7 @@ export function FridgeFormPage({ mode }: { mode: "add" | "edit" }) {
 
   return (
     <>
-      <ScreenHeader title={mode === "add" ? "Thêm thực phẩm" : "Cập nhật thực phẩm"} subtitle="Flow: nhập thông tin → validate → lưu database → cập nhật danh sách → success popup." actions={<BackButton />} />
+      <ScreenHeader title={mode === "add" ? "Thêm thực phẩm" : "Cập nhật thực phẩm"} subtitle="Flow: nhập thông tin → validate → lưu database → cập nhật danh sách → success popup." />
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-4 rounded-[8px] bg-white p-6 shadow-card">
         <Controller control={control} name="food_id" render={({ field }) => <Select value={field.value} onValueChange={field.onChange}><SelectTrigger><SelectValue placeholder="Chọn food_id từ bảng foods" /></SelectTrigger><SelectContent>{foods.map((food) => <SelectItem key={food.food_id} value={food.food_id}>{food.icon} {food.food_name} · {food.category} · {food.unit}</SelectItem>)}</SelectContent></Select>} />
         {errors.food_id && <p className="text-xs text-destructive">{errors.food_id.message}</p>}
@@ -49,7 +48,7 @@ export function FridgeFormPage({ mode }: { mode: "add" | "edit" }) {
         <Input type="date" {...register("expiry_date")} />
         {errors.expiry_date && <p className="text-xs text-destructive">{errors.expiry_date.message}</p>}
         <Controller control={control} name="location" render={({ field }) => <Select value={field.value} onValueChange={field.onChange}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{foodLocations.map((loc) => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent></Select>} />
-        <div className="flex gap-2"><Button disabled={isSubmitting} className="rounded-[8px] bg-[#7655aa]"><Save className="mr-2 h-4 w-4" />{isSubmitting ? "Đang lưu..." : "Lưu"}</Button><Button type="button" variant="outline" onClick={() => navigate(-1)}>Hủy</Button></div>
+        <div className="flex gap-2"><Button disabled={isSubmitting} className="rounded-[8px] bg-[#7655aa]"><Save className="mr-2 h-4 w-4" />{isSubmitting ? "Đang lưu..." : "Lưu"}</Button></div>
       </form>
     </>
   );
