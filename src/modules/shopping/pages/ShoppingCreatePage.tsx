@@ -13,10 +13,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { foodApi } from "@/shared/api/foodApi";
 import { familyApi } from "@/modules/family/api/familyApi";
-import type { Food, ShoppingType, User } from "@/types";
+import type { Food, ShoppingType, User, FoodUnit, FoodCategory } from "@/types";
+import { type ShoppingCreateItem } from "@/modules/shopping/api/shoppingApi";
 import { todayIso } from "@/shared/utils/date";
 
-type SelectSectionRow = { food_id: string; quantity: number };
+type SelectSectionRow = {
+  food_id: string;
+  quantity: number;
+  custom_food_name?: string;
+  unit?: FoodUnit;
+  category?: FoodCategory;
+};
 
 export function ShoppingCreatePage() {
   const navigate = useNavigate();
@@ -55,11 +62,29 @@ export function ShoppingCreatePage() {
     setRows((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function buildItems(): Array<{ food_id: string; quantity: number }> {
-    return rows.filter((row) => row.food_id).map((row) => ({ food_id: row.food_id, quantity: row.quantity }));
+  function buildItems(): ShoppingCreateItem[] {
+    return rows
+      .filter((row) => row.food_id)
+      .map((row) => {
+        if (row.food_id === "other") {
+          return {
+            food_name: row.custom_food_name || "Thực phẩm khác",
+            quantity: row.quantity,
+            unit: row.unit || "g",
+            category: row.category || "Khác",
+          };
+        }
+        return {
+          food_id: row.food_id,
+          quantity: row.quantity,
+        };
+      });
   }
 
   async function saveList() {
+    if (rows.some((row) => row.food_id === "other" && !row.custom_food_name?.trim())) {
+      return toast.error("Vui lòng nhập tên thực phẩm cho các lựa chọn khác.");
+    }
     const allItems = buildItems();
     if (allItems.length === 0) return setValidationOpen(true);
     if (!title.trim()) return toast.error("Nhập tên danh sách.");
@@ -119,22 +144,69 @@ export function ShoppingCreatePage() {
             const food = foods.find((item) => item.food_id === row.food_id);
             return (
               <div key={index} className="grid gap-3 md:grid-cols-[1fr_150px_170px_80px]">
-                <Select value={row.food_id} onValueChange={(value) => updateRow(index, { food_id: value })}>
-                  <SelectTrigger><SelectValue placeholder="Chọn thực phẩm" /></SelectTrigger>
-                  <SelectContent>
-                    {foods.map((item) => (
-                      <SelectItem key={item.food_id} value={item.food_id}>
-                        {item.icon} {item.food_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {row.food_id === "other" ? (
+                  <div className="flex gap-2 w-full">
+                    <Input
+                      value={row.custom_food_name || ""}
+                      onChange={(e) => updateRow(index, { custom_food_name: e.target.value })}
+                      placeholder="Nhập tên thực phẩm..."
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="px-2 h-10 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                      onClick={() => updateRow(index, { food_id: "", custom_food_name: "" })}
+                    >
+                      Chọn lại
+                    </Button>
+                  </div>
+                ) : (
+                  <Select value={row.food_id} onValueChange={(value) => updateRow(index, { food_id: value })}>
+                    <SelectTrigger><SelectValue placeholder="Chọn thực phẩm" /></SelectTrigger>
+                    <SelectContent>
+                      {foods.map((item) => (
+                        <SelectItem key={item.food_id} value={item.food_id}>
+                          {item.icon} {item.food_name}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="other">🧺 Khác...</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
                 <Input
                   type="number"
                   value={row.quantity}
                   onChange={(e) => updateRow(index, { quantity: Number(e.target.value) })}
                 />
-                <Input value={food ? `${food.unit} · ${food.category}` : ""} readOnly placeholder="unit · category" />
+                {row.food_id === "other" ? (
+                  <div className="grid grid-cols-2 gap-1 h-10">
+                    <Select
+                      value={row.unit || "g"}
+                      onValueChange={(val) => updateRow(index, { unit: val as FoodUnit })}
+                    >
+                      <SelectTrigger className="h-10 px-2 text-xs"><SelectValue placeholder="Đơn vị" /></SelectTrigger>
+                      <SelectContent>
+                        {["kg", "g", "lít", "ml", "quả", "củ", "miếng", "gói"].map((u) => (
+                          <SelectItem key={u} value={u} className="text-xs">{u}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={row.category || "Khác"}
+                      onValueChange={(val) => updateRow(index, { category: val as FoodCategory })}
+                    >
+                      <SelectTrigger className="h-10 px-2 text-xs"><SelectValue placeholder="Danh mục" /></SelectTrigger>
+                      <SelectContent>
+                        {["Rau củ", "Thịt cá", "Đồ khô", "Sữa & Trứng", "Gia vị", "Khác"].map((c) => (
+                          <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <Input value={food ? `${food.unit} · ${food.category}` : ""} readOnly placeholder="unit · category" />
+                )}
                 <Button variant="outline" onClick={() => removeRow(index)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>

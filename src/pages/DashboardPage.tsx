@@ -1,4 +1,5 @@
-﻿import { AlertCircle, CheckCircle2, Clock, Flame, Play, Refrigerator, ScrollText, ShoppingCart, Star } from "lucide-react";
+﻿import { AlertCircle, CheckCircle2, Clock, Flame, Lightbulb, Play, Refrigerator, ScrollText, ShoppingCart, Star } from "lucide-react";
+import { useT } from "@/shared/store/languageStore";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/modules/auth/store/authStore";
@@ -23,6 +24,7 @@ export function DashboardPage() {
   const [activities, setActivities] = useState<FamilyActivity[]>([]);
   const [members, setMembers] = useState<User[]>([]);
   const [activityDetail, setActivityDetail] = useState<FamilyActivity | null>(null);
+  const t = useT();
 
   useEffect(() => {
     void Promise.all([
@@ -92,7 +94,7 @@ export function DashboardPage() {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_434px]">
           <section className="rounded-[20px] bg-[#ded7eb] p-6 shadow-card">
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#9188a1]">Meal plan</div>
+            <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#9188a1]">{t("mealPlanSection")}</div>
             <h2 className="mt-2 text-xl font-extrabold">Thực đơn hôm nay</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-3">
               {mealCards.map(({ meal, recipes: mealRecipes }) => (
@@ -119,7 +121,7 @@ export function DashboardPage() {
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#4e6cf2] text-white"><ShoppingCart /></div>
                   <div><h3 className="text-lg font-extrabold">{activeList.title}</h3><p className="text-xs text-[#9188a1]">{activeList.items.length} items</p></div>
                 </div>
-                <div className="mt-6 flex items-center justify-between text-xs"><span className="text-[#9188a1]">Progress</span><b>{progress}%</b></div>
+                <div className="mt-6 flex items-center justify-between text-xs"><span className="text-[#9188a1]">{t("progress")}</span><b>{progress}%</b></div>
                 <div className="mt-2 h-2 rounded-full bg-[#e8edf5]"><div className="h-full rounded-full bg-gradient-to-r from-[#3488ed] to-[#2ecf78]" style={{ width: `${progress}%` }} /></div>
                 <div className="mt-6 space-y-3">
                   {activeList.items.slice(0, 5).map((item) => (
@@ -142,10 +144,44 @@ export function DashboardPage() {
           </aside>
         </div>
 
+        {/* Smart Insights */}
+        {(expiring.length > 0 || fridge.length === 0) && (
+          <section className="mt-6 rounded-[20px] bg-gradient-to-r from-[#7655aa] to-[#9b7cc9] p-6 text-white shadow-card">
+            <div className="mb-4 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-[#ffbd2c]" />
+              <span className="text-sm font-extrabold uppercase tracking-wide">Gợi ý thông minh</span>
+            </div>
+            <div className="space-y-3">
+              {expiring.length > 0 && (
+                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
+                  <span className="mt-0.5 text-xl">⏰</span>
+                  <p className="text-sm">
+                    Sử dụng <strong>{expiring[0]?.food.food_name}</strong> trước ngày <strong>{expiring[0] ? expiring[0].expiry_date : ""}</strong> để tránh lãng phí.
+                  </p>
+                </div>
+              )}
+              {expiring.length > 2 && (
+                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
+                  <span className="mt-0.5 text-xl">🗑️</span>
+                  <p className="text-sm">
+                    Bạn có <strong>{expiring.length} thực phẩm</strong> sắp hết hạn. Lên kế hoạch bữa ăn để giảm lãng phí.
+                  </p>
+                </div>
+              )}
+              {fridge.length === 0 && (
+                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
+                  <span className="mt-0.5 text-xl">🛒</span>
+                  <p className="text-sm">Tủ lạnh đang trống! Hãy tạo danh sách mua sắm để bổ sung thực phẩm.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         <section className="mt-6 rounded-[20px] bg-white p-6 shadow-card lg:w-[calc(100%-458px)]">
-          <div className="inline-flex rounded-full bg-[#f0ecfb] px-3 py-1 text-xs font-bold text-[#7655aa]">Family feed</div>
-          <h2 className="mt-4 text-xl font-extrabold">Hoạt động gia đình</h2>
-          <p className="text-sm text-[#746d82]">4 cập nhật mới nhất từ các thành viên trong nhà</p>
+          <div className="inline-flex rounded-full bg-[#f0ecfb] px-3 py-1 text-xs font-bold text-[#7655aa]">{t("activityFeed")}</div>
+          <h2 className="mt-4 text-xl font-extrabold">{t("activityFeed")}</h2>
+          <p className="text-sm text-[#746d82]">{t("activityFeedSub")}</p>
           <div className="relative mt-6 space-y-4 pl-14">
             <div className="absolute bottom-0 left-6 top-2 w-px bg-[#e6e0ef]" />
             {activities.map((activity) => {
@@ -164,12 +200,12 @@ export function DashboardPage() {
       <AppModal open={Boolean(activityDetail)} onOpenChange={(open) => !open && setActivityDetail(null)} type="info" title="Chi tiết hoạt động" secondaryLabel="Đóng">
         {activityDetail && (
           <div className="space-y-2 text-sm">
-            <DetailRow label="Actor" value={members.find((item) => item.user_id === activityDetail.user_id)?.full_name ?? "Thành viên"} />
-            <DetailRow label="Action" value={activityDetail.message} />
-            <DetailRow label="Target" value={activityDetail.target ?? activityDetail.action_type} />
-            <DetailRow label="Quantity" value={activityDetail.quantity ? String(activityDetail.quantity) : "-"} />
-            <DetailRow label="Timestamp" value={formatDate(activityDetail.created_at)} />
-            <DetailRow label="Status" value={activityDetail.status ?? "done"} />
+            <DetailRow label={t("actorLabel")} value={members.find((item) => item.user_id === activityDetail.user_id)?.full_name ?? "Thành viên"} />
+            <DetailRow label={t("actionLabel")} value={activityDetail.message} />
+            <DetailRow label={t("targetLabel")} value={activityDetail.target ?? activityDetail.action_type} />
+            <DetailRow label={t("quantityLabel")} value={activityDetail.quantity ? String(activityDetail.quantity) : "-"} />
+            <DetailRow label={t("timestampLabel")} value={formatDate(activityDetail.created_at)} />
+            <DetailRow label={t("statusLabel")} value={activityDetail.status ?? "done"} />
           </div>
         )}
       </AppModal>

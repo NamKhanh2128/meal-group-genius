@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, PackageCheck, Trash2, X, Info } from "lucide-react";
+import { useT } from "@/shared/store/languageStore";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ export function ShoppingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [detailGroup, setDetailGroup] = useState<GroupedItem | null>(null);
   const [fridgeItems, setFridgeItems] = useState<FridgeRow[]>([]);
+  const t = useT();
   const list = lists.find((item) => item.shopping_list_id === id);
   const allCompleted = useMemo(
     () => Boolean(list?.items.length) && list!.items.every((item) => item.item_status === "COMPLETED"),
@@ -150,7 +152,7 @@ export function ShoppingDetailPage() {
     <>
       <ScreenHeader
         title={list.title}
-        subtitle="Bought quantity quyết định PARTIAL/COMPLETED. Inventory chỉ cộng delta bought quantity đúng một lần."
+        subtitle={t("shoppingListSubtitle")}
         actions={
           <div className="flex flex-wrap gap-2">
             {deleteMode && (
@@ -251,7 +253,7 @@ export function ShoppingDetailPage() {
                     </div>
                     <p className="text-xs text-[#746d82]">
                       Cần {group.totalRequired} {group.unit} · Đã mua {group.totalBought} ·{" "}
-                      {group.category} · {status}
+                      {group.category} · {t(`shoppingStatus_${status}` as Parameters<typeof t>[0])}
                     </p>
                   </div>
                   {!deleteMode && group.items.length > 1 && (
@@ -306,7 +308,7 @@ export function ShoppingDetailPage() {
         secondaryLabel="Tiếp tục"
         onPrimary={confirmComplete}
       >
-        Chỉ danh sách có tất cả item COMPLETED mới được chuyển DONE.
+        {t("completeConfirm")}
       </AppModal>
 
       {/* Grouped item detail popup */}
@@ -439,7 +441,7 @@ function GroupedItemModal({
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-bold ${statusColor[item.item_status ?? "PENDING"]}`}
                 >
-                  {item.item_status ?? "PENDING"}
+                  {t(`shoppingStatus_${item.item_status ?? "PENDING"}` as Parameters<typeof t>[0])}
                 </span>
               </button>
             ))}

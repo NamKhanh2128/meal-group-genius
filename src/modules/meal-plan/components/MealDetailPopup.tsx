@@ -1,4 +1,4 @@
-﻿import { AlertTriangle, ChefHat, Clock, Eye, Flame, Plus, ShoppingCart, Star, Trash2 } from "lucide-react";
+import { AlertTriangle, ChefHat, Clock, Eye, Flame, Plus, ShoppingCart, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/modules/auth/store/authStore";
@@ -7,9 +7,9 @@ import type { RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import { RecipePicker } from "./RecipePicker";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useT } from "@/shared/store/languageStore";
 
 const SLOTS: MealSlot[] = ["Sáng", "Trưa", "Tối"];
-const SLOT_LABELS: Record<MealSlot, string> = { Sáng: "Breakfast", Trưa: "Lunch", Tối: "Dinner" };
 
 export function MealDetailPopup() {
   const {
@@ -25,12 +25,19 @@ export function MealDetailPopup() {
   } = useMealPlanStore();
   const familyId = useMealPlanStore((s) => s.familyId);
   const userId = useAuthStore((s) => s.user?.user_id ?? "user-1");
+  const t = useT();
   const [pickerSlot, setPickerSlot] = useState<MealSlot | null>(null);
   const [replaceTarget, setReplaceTarget] = useState<{ slot: MealSlot; recipe: RecipeDetail } | null>(null);
   const [viewingRecipe, setViewingRecipe] = useState<RecipeDetail | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const open = Boolean(editingDate);
+
+  const slotLabels: Record<MealSlot, string> = {
+    Sáng: t("mealBreakfast"),
+    Trưa: t("mealLunch"),
+    Tối: t("mealDinner"),
+  };
 
   function handleClose() {
     setPickerSlot(null);
@@ -85,14 +92,22 @@ export function MealDetailPopup() {
     }
   }
 
-  const title = viewingRecipe ? viewingRecipe.recipe_name : pickerSlot || replaceTarget ? "Chọn công thức" : "Chi tiết bữa ăn";
+  const title = viewingRecipe
+    ? viewingRecipe.recipe_name
+    : pickerSlot || replaceTarget
+      ? t("chooseRecipe")
+      : t("mealDetail");
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b bg-white p-5">
           <DialogTitle className="text-lg font-extrabold text-[#3d3051]">{title}</DialogTitle>
-          {editingDate && <div className="text-xs text-[#9188a1]">{new Date(editingDate).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long" })}</div>}
+          {editingDate && (
+            <div className="text-xs text-[#9188a1]">
+              {new Date(editingDate).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long" })}
+            </div>
+          )}
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto p-5">
@@ -120,15 +135,17 @@ export function MealDetailPopup() {
                 return (
                   <section key={slot} className="rounded-xl border bg-[#faf9fd] p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <h3 className="font-extrabold text-[#3d3051]">{SLOT_LABELS[slot]}</h3>
+                      <h3 className="font-extrabold text-[#3d3051]">{slotLabels[slot]}</h3>
                       <Button size="sm" onClick={() => setPickerSlot(slot)} disabled={submitting} className="gap-1.5 bg-[#7655aa]">
                         <Plus className="h-4 w-4" />
-                        Add meal
+                        {t("addMeal")}
                       </Button>
                     </div>
 
                     {recipes.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[#d1c5e8] py-7 text-center text-sm text-[#9188a1]">Chưa có món. Chọn Add meal để thêm công thức.</div>
+                      <div className="rounded-xl border border-dashed border-[#d1c5e8] py-7 text-center text-sm text-[#9188a1]">
+                        {t("noMealYet")}
+                      </div>
                     ) : (
                       <div className="space-y-3">
                         {recipes.map((recipe) => {
@@ -142,14 +159,24 @@ export function MealDetailPopup() {
                                   <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{recipe.time_minutes} phút</span>
                                   <span className="inline-flex items-center gap-1"><Flame className="h-3 w-3" />{recipe.calories} kcal</span>
                                   <span>{recipe.difficulty}</span>
-                                  <span className={missing.length ? "text-amber-600" : "text-green-600"}>{missing.length ? `Thiếu ${missing.length} nguyên liệu` : "Đủ nguyên liệu"}</span>
+                                  <span className={missing.length ? "text-amber-600" : "text-green-600"}>
+                                    {missing.length ? `Thiếu ${missing.length} nguyên liệu` : "Đủ nguyên liệu"}
+                                  </span>
                                 </div>
                               </div>
                               <div className="flex flex-wrap gap-2">
-                                <Button size="sm" variant="outline" onClick={() => setViewingRecipe(recipe)}><Eye className="mr-1 h-4 w-4" />Detail</Button>
-                                <Button size="sm" variant="outline" onClick={() => setReplaceTarget({ slot, recipe })}>Replace</Button>
-                                <Button size="sm" variant="outline" onClick={() => toast.success("Đã đánh dấu yêu thích.")}><Star className="mr-1 h-4 w-4" />Favorite</Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleRemove(slot, recipe)} disabled={submitting}><Trash2 className="mr-1 h-4 w-4" />Remove</Button>
+                                <Button size="sm" variant="outline" onClick={() => setViewingRecipe(recipe)}>
+                                  <Eye className="mr-1 h-4 w-4" />{t("detailButton")}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => setReplaceTarget({ slot, recipe })}>
+                                  {t("replaceButton")}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => toast.success("Đã đánh dấu yêu thích.")}>
+                                  <Star className="mr-1 h-4 w-4" />{t("favoriteButton")}
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleRemove(slot, recipe)} disabled={submitting}>
+                                  <Trash2 className="mr-1 h-4 w-4" />{t("removeButton")}
+                                </Button>
                               </div>
                             </div>
                           );
@@ -161,7 +188,7 @@ export function MealDetailPopup() {
               })}
               <Button variant="outline" onClick={handleCreateShopping} disabled={submitting} className="gap-1.5">
                 <ShoppingCart className="h-4 w-4" />
-                Add missing ingredients to shopping list
+                {t("addMissingToCart")}
               </Button>
             </div>
           )}
@@ -173,6 +200,7 @@ export function MealDetailPopup() {
 
 function RecipeDetailView({ recipe, onRemoveSuggestion }: { recipe: RecipeDetail; onRemoveSuggestion: () => void }) {
   const missing = useMealPlanStore((s) => s.getMissingForRecipe(recipe.recipe_id));
+  const t = useT();
 
   return (
     <div className="space-y-4">
@@ -189,13 +217,13 @@ function RecipeDetailView({ recipe, onRemoveSuggestion }: { recipe: RecipeDetail
         </div>
       )}
       <section>
-        <h3 className="mb-2 font-bold text-[#3d3051]">Ingredients</h3>
+        <h3 className="mb-2 font-bold text-[#3d3051]">{t("ingredients")}</h3>
         <div className="grid gap-2 sm:grid-cols-2">
           {recipe.ingredients.map((item) => <div key={item.id} className="rounded-lg bg-[#f8f6fb] px-3 py-2 text-sm">{item.food.food_name}: {item.quantity} {item.food.unit}</div>)}
         </div>
       </section>
       <section>
-        <h3 className="mb-2 font-bold text-[#3d3051]">Cooking steps</h3>
+        <h3 className="mb-2 font-bold text-[#3d3051]">{t("cookingSteps")}</h3>
         <ol className="list-decimal space-y-2 pl-5 text-sm text-[#746d82]">
           {recipe.instructions.map((step, index) => <li key={index}>{step}</li>)}
         </ol>

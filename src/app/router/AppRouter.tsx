@@ -15,6 +15,8 @@ import { FamilyPage } from "@/modules/family/pages/FamilyPage";
 import { ProfilePage } from "@/modules/auth/pages/ProfilePage";
 import { ChangePasswordPage } from "@/modules/auth/pages/ChangePasswordPage";
 import { SplashPage } from "@/pages/SplashPage";
+import { StatisticsPage } from "@/modules/statistics/pages/StatisticsPage";
+import { OnboardingPage } from "@/pages/OnboardingPage";
 
 function ProtectedRoute() {
   const user = useAuthStore((state) => state.user);
@@ -56,10 +58,12 @@ export function AppRouter() {
           <Route path="/suggestions" element={<Navigate to="/meal-planner" replace />} />
           <Route path="/recipes" element={<Navigate to="/meal-planner" replace />} />
           <Route path="/favorites" element={<Navigate to="/meal-planner" replace />} />
+          <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/family" element={<FamilyPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<Navigate to="/profile" replace />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

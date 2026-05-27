@@ -13,7 +13,7 @@ type Tab = "today" | "week" | "done";
 
 export function ShoppingPage() {
   const family = useAuthStore((state) => state.family)!;
-  const { lists, load, complete } = useShoppingStore();
+  const { lists, load, complete, loading } = useShoppingStore();
   const [tab, setTab] = useState<Tab>("today");
   const [completeId, setCompleteId] = useState<string | null>(null);
   useEffect(() => { void load(family.family_id); }, [family.family_id, load]);
@@ -43,6 +43,13 @@ export function ShoppingPage() {
       <div className="mb-5 flex flex-wrap gap-2">
         {(["today", "week", "done"] as Tab[]).map((item) => <Button key={item} variant={tab === item ? "default" : "outline"} className={tab === item ? "bg-[#7655aa]" : ""} onClick={() => setTab(item)}>{item === "today" ? "Hôm nay" : item === "week" ? "Tuần này" : "Đã hoàn thành"}</Button>)}
       </div>
+      {loading && (
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-[8px] bg-white shadow-card" />
+          ))}
+        </div>
+      )}
       <div className="grid gap-4">
         {filtered.map((list) => {
           const completed = list.items.filter((item) => item.item_status === "COMPLETED").length;
@@ -65,7 +72,20 @@ export function ShoppingPage() {
             </section>
           );
         })}
-        {filtered.length === 0 && <div className="rounded-[8px] bg-white p-10 text-center shadow-card"><ClipboardCheck className="mx-auto h-10 w-10 text-[#7655aa]" /><b className="mt-3 block">Không có danh sách trong tab này</b><Button asChild className="mt-4 bg-[#ffb11f]"><Link to="/shopping/create">Tạo danh sách</Link></Button></div>}
+        {!loading && filtered.length === 0 && (
+          <div className="flex flex-col items-center gap-3 rounded-[8px] bg-white p-12 text-center shadow-card">
+            <ClipboardCheck className="h-12 w-12 text-[#c9bfe0]" />
+            <div>
+              <b className="block text-[#3b2868]">Chưa có danh sách nào</b>
+              <p className="mt-1 text-sm text-[#9188a1]">
+                {tab === "done" ? "Chưa có danh sách nào được hoàn tất." : "Tạo danh sách mua sắm để bắt đầu."}
+              </p>
+            </div>
+            {tab !== "done" && (
+              <Button asChild className="mt-2 bg-[#ffb11f]"><Link to="/shopping/create"><Plus className="mr-2 h-4 w-4" />Tạo danh sách</Link></Button>
+            )}
+          </div>
+        )}
       </div>
       <AppModal open={Boolean(completeId)} onOpenChange={(open) => !open && setCompleteId(null)} type="confirm" title="Hoàn tất mua sắm?" primaryLabel="Hoàn tất" secondaryLabel="Tiếp tục" onPrimary={() => completeId && completeList(completeId)}>
         Danh sách chỉ chuyển DONE nếu tất cả mặt hàng đã COMPLETED.

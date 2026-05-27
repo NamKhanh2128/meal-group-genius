@@ -1,4 +1,4 @@
-﻿import { Plus } from "lucide-react";
+﻿import { Plus, Star } from "lucide-react";
 import type { MealSlot } from "@/modules/meal-plan/store/mealPlanStore";
 import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
 
@@ -21,9 +21,13 @@ const DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 export function MealPlanDayCell({ date, dayIndex }: { date: string; dayIndex: number }) {
   const openEdit = useMealPlanStore((s) => s.openEdit);
   const getSlotRecipes = useMealPlanStore((s) => s.getSlotRecipes);
+  const groups = useMealPlanStore((s) => s.groups);
   const today = new Date().toISOString().slice(0, 10);
   const isToday = date === today;
   const dateNum = new Date(date).getDate();
+
+  const recipeUsageCount = (recipeId: string) =>
+    groups.reduce((acc, g) => acc + (g.recipe_ids.includes(recipeId) ? 1 : 0), 0);
 
   return (
     <div className={`flex flex-col rounded-xl border-2 ${isToday ? "border-[#7655aa]" : "border-transparent"} bg-white shadow-sm`}>
@@ -33,7 +37,10 @@ export function MealPlanDayCell({ date, dayIndex }: { date: string; dayIndex: nu
       </div>
       <div className="flex flex-col gap-1.5 p-2">
         {SLOTS.map((slot) => {
-          const count = getSlotRecipes(date, slot).length;
+          const slotRecipes = getSlotRecipes(date, slot);
+          const count = slotRecipes.length;
+          const hasFavorite = slotRecipes.some((r) => r.is_favorite);
+          const hasFrequent = slotRecipes.some((r) => recipeUsageCount(r.recipe_id) >= 2);
           return (
             <button
               key={slot}
@@ -42,7 +49,11 @@ export function MealPlanDayCell({ date, dayIndex }: { date: string; dayIndex: nu
             >
               <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${slotDots[slot]}`} />
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] font-bold uppercase tracking-wide">{slot}</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wide">{slot}</span>
+                  {hasFavorite && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
+                  {hasFrequent && <span className="text-[10px]" title="Thường dùng">🔥</span>}
+                </div>
                 {count === 0 ? (
                   <div className="flex items-center gap-0.5 text-[10px] opacity-50">
                     <Plus className="h-3 w-3" />

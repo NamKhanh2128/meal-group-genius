@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { Download, Edit, Filter, Plus, Search, SortAsc, Trash2, Utensils, X } from "lucide-react";
+import { Calendar, Download, Edit, Filter, MapPin, Package, Plus, Search, SortAsc, Trash2, Utensils, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { foodCategories, foodLocations } from "@/shared/constants/options";
 import { daysUntil, formatDate } from "@/shared/utils/date";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function FridgePage() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export function FridgePage() {
   const [consumeId, setConsumeId] = useState<string | null>(null);
   const [consumeQuantity, setConsumeQuantity] = useState(1);
   const [sortAsc, setSortAsc] = useState(true);
+  const [detailFoodId, setDetailFoodId] = useState<string | null>(null);
 
   // Multi-delete state
   const [deleteMode, setDeleteMode] = useState(false);
@@ -33,6 +35,22 @@ export function FridgePage() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   useEffect(() => { void load(family.family_id); }, [family.family_id, load]);
+
+  // Group items by food_id to detect duplicates
+  const foodIdCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    items.forEach((item) => { map[item.food_id] = (map[item.food_id] ?? 0) + 1; });
+    return map;
+  }, [items]);
+
+  const detailItems = useMemo(
+    () => items.filter((item) => item.food_id === detailFoodId),
+    [items, detailFoodId]
+  );
+
+  function handleFoodNameClick(foodId: string) {
+    setDetailFoodId(foodId);
+  }
 
   const expiring = items.filter((item) => daysUntil(item.expiry_date) <= 3);
   const filtered = useMemo(() => items.filter((item) => {
@@ -153,11 +171,11 @@ export function FridgePage() {
         <div className="flex flex-wrap gap-3">
           <div className="relative min-w-[260px] flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-[#9188a1]" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" placeholder="Search by name" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" placeholder="Tìm theo tên..." />
           </div>
           <Button variant="outline" onClick={() => setFilterOpen(true)}><Filter className="mr-2 h-4 w-4" />Lọc</Button>
-          <Button variant="outline" onClick={() => setSortAsc((value) => !value)}><SortAsc className="mr-2 h-4 w-4" />Sort</Button>
-          <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" />Export</Button>
+          <Button variant="outline" onClick={() => setSortAsc((value) => !value)}><SortAsc className="mr-2 h-4 w-4" />Sắp xếp</Button>
+          <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" />Xuất CSV</Button>
         </div>
 
         {/* Delete mode: select-all banner */}
@@ -183,6 +201,8 @@ export function FridgePage() {
               selected={selectedIds.includes(item.fridge_item_id)}
               onToggleSelect={() => toggleSelectItem(item.fridge_item_id)}
               onDelete={() => setDeleteId(item.fridge_item_id)}
+              hasDuplicate={(foodIdCounts[item.food_id] ?? 0) > 1}
+              onFoodNameClick={() => handleFoodNameClick(item.food_id)}
             />
           ))}
         </div>
@@ -193,13 +213,13 @@ export function FridgePage() {
             <thead className="bg-[#fbfacb] text-left">
               <tr>
                 {deleteMode && <th className="p-3 w-10" />}
-                <th className="p-3">Name</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>HSD</th>
-                <th>Category</th>
-                <th>Location</th>
-                <th className="text-right pr-3">Actions</th>
+                <th className="p-3">Tên thực phẩm</th>
+                <th>Số lượng</th>
+                <th>Đơn vị</th>
+                <th>Hạn sử dụng</th>
+                <th>Danh mục</th>
+                <th>Vị trí</th>
+                <th className="text-right pr-3">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -216,7 +236,25 @@ export function FridgePage() {
                       />
                     </td>
                   )}
-                  <td className="p-3 font-bold">{item.food.icon} {item.food.food_name}</td>
+                  <td className="p-3 font-bold">
+                    {!deleteMode ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-left hover:text-[#7655aa] transition-colors cursor-pointer"
+                        onClick={() => handleFoodNameClick(item.food_id)}
+                        title="Xem chi tiết HSD"
+                      >
+                        {item.food.icon} {item.food.food_name}
+                        {(foodIdCounts[item.food_id] ?? 0) > 1 && (
+                          <span className="ml-1 rounded-full bg-[#7655aa]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#7655aa]">
+                            {foodIdCounts[item.food_id]} lô
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <span>{item.food.icon} {item.food.food_name}</span>
+                    )}
+                  </td>
                   <td>{item.quantity}</td>
                   <td>{item.food.unit}</td>
                   <td>
@@ -286,7 +324,7 @@ export function FridgePage() {
               {foodLocations.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => { setQuery(""); setCategory("all"); setExpiry("all"); setLocation("all"); }}>Reset</Button>
+          <Button variant="outline" onClick={() => { setQuery(""); setCategory("all"); setExpiry("all"); setLocation("all"); }}>Đặt lại</Button>
         </div>
       </AppModal>
 
@@ -304,6 +342,85 @@ export function FridgePage() {
       <AppModal open={Boolean(consumeId)} onOpenChange={(open) => !open && setConsumeId(null)} type="confirm" title="Dùng nhanh thực phẩm" primaryLabel="Cập nhật" secondaryLabel="Hủy" onPrimary={confirmConsume}>
         <Input type="number" min={0.01} step="0.01" value={consumeQuantity} onChange={(event) => setConsumeQuantity(Number(event.target.value))} />
       </AppModal>
+
+      {/* Food detail popup */}
+      <Dialog open={Boolean(detailFoodId)} onOpenChange={(open) => !open && setDetailFoodId(null)}>
+        <DialogContent className="rounded-[12px] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#7655aa]">
+              {detailItems[0]?.food.icon}{" "}
+              {detailItems[0]?.food.food_name}
+              <span className="ml-1 rounded-full bg-[#7655aa]/10 px-2 py-0.5 text-xs font-semibold text-[#7655aa]">
+                {detailItems.length} lô
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-1">
+            {detailItems.map((item, idx) => {
+              const days = daysUntil(item.expiry_date);
+              const isExpired = days < 0;
+              const isSoon = !isExpired && days <= 3;
+              return (
+                <div
+                  key={item.fridge_item_id}
+                  className={`rounded-[8px] border p-4 ${isExpired
+                      ? "border-red-200 bg-red-50"
+                      : isSoon
+                        ? "border-orange-200 bg-orange-50"
+                        : "border-[#e8e4f0] bg-[#faf9fd]"
+                    }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[#9188a1]">Lô #{idx + 1}</span>
+                    {isExpired ? (
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">Đã hết hạn</span>
+                    ) : isSoon ? (
+                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-600">Sắp hết hạn</span>
+                    ) : (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Còn hạn</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-[#5f586d]">
+                      <Package className="h-4 w-4 shrink-0 text-[#7655aa]" />
+                      <span><span className="font-semibold text-[#3a3240]">{item.quantity}</span> {item.food.unit}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#5f586d]">
+                      <MapPin className="h-4 w-4 shrink-0 text-[#7655aa]" />
+                      <span>{item.location}</span>
+                    </div>
+                    <div className={`col-span-2 flex items-center gap-2 ${isExpired ? "text-red-600" : isSoon ? "text-orange-600" : "text-[#5f586d]"
+                      }`}>
+                      <Calendar className="h-4 w-4 shrink-0" />
+                      <span>
+                        HSD: <span className="font-semibold">{formatDate(item.expiry_date)}</span>
+                        {isExpired
+                          ? ` (đã hết hạn ${Math.abs(days)} ngày)`
+                          : days === 0
+                            ? " (hết hạn hôm nay)"
+                            : ` (còn ${days} ngày)`}
+                      </span>
+                    </div>
+                  </div>
+                  {!deleteMode && (
+                    <div className="mt-3 flex gap-2">
+                      <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                        <Link to={`/fridge/edit/${item.fridge_item_id}`}><Edit className="mr-1 h-3 w-3" />Sửa</Link>
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setConsumeId(item.fridge_item_id); setConsumeQuantity(1); setDetailFoodId(null); }}>
+                        <Utensils className="mr-1 h-3 w-3" />Dùng
+                      </Button>
+                      <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => { setDeleteId(item.fridge_item_id); setDetailFoodId(null); }}>
+                        <Trash2 className="mr-1 h-3 w-3" />Xóa
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -314,12 +431,16 @@ function FoodCard({
   selected,
   onToggleSelect,
   onDelete,
+  hasDuplicate,
+  onFoodNameClick,
 }: {
   item: ReturnType<typeof useFridgeStore.getState>["items"][number];
   deleteMode: boolean;
   selected: boolean;
   onToggleSelect: () => void;
   onDelete: () => void;
+  hasDuplicate?: boolean;
+  onFoodNameClick?: () => void;
 }) {
   return (
     <div
@@ -330,14 +451,30 @@ function FoodCard({
         {deleteMode && (
           <Checkbox checked={selected} onCheckedChange={onToggleSelect} onClick={(e) => e.stopPropagation()} />
         )}
-        <b className={deleteMode ? "ml-2" : ""}>{item.food.icon} {item.food.food_name}</b>
+        {!deleteMode ? (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-left font-bold hover:text-[#7655aa] transition-colors"
+            onClick={(e) => { e.stopPropagation(); onFoodNameClick?.(); }}
+            title="Xem chi tiết HSD"
+          >
+            {item.food.icon} {item.food.food_name}
+            {hasDuplicate && (
+              <span className="ml-1 rounded-full bg-[#7655aa]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#7655aa]">
+                Nhiều lô
+              </span>
+            )}
+          </button>
+        ) : (
+          <b className={deleteMode ? "ml-2" : ""}>{item.food.icon} {item.food.food_name}</b>
+        )}
         <span className="text-sm">{item.quantity} {item.food.unit}</span>
       </div>
       <div className="mt-2 text-sm text-[#746d82]">{item.food.category} · {item.location} · HSD {formatDate(item.expiry_date)}</div>
       {!deleteMode && (
         <div className="mt-3 flex gap-2">
-          <Button asChild size="sm" variant="outline"><Link to={`/fridge/edit/${item.fridge_item_id}`}>Edit</Link></Button>
-          <Button size="sm" variant="destructive" onClick={onDelete}>Delete</Button>
+          <Button asChild size="sm" variant="outline"><Link to={`/fridge/edit/${item.fridge_item_id}`}>Sửa</Link></Button>
+          <Button size="sm" variant="destructive" onClick={onDelete}>Xóa</Button>
         </div>
       )}
     </div>

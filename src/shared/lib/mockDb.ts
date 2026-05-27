@@ -32,7 +32,7 @@ type Db = {
   family_activities: FamilyActivity[];
 };
 
-const DB_KEY = "nateat.db";
+const DB_KEY = "nateat.db.v2";
 const SESSION_KEY = "nateat.session";
 
 const now = () => new Date().toISOString();
@@ -93,6 +93,7 @@ function initialDb(): Db {
     ],
     fridge_items: [
       { fridge_item_id: "fridge-1", family_id, food_id: "food-beef", quantity: 500, expiry_date: addDaysIso(2), location: "Ngăn mát" },
+      { fridge_item_id: "fridge-1b", family_id, food_id: "food-beef", quantity: 300, expiry_date: addDaysIso(7), location: "Ngăn đông" },
       { fridge_item_id: "fridge-2", family_id, food_id: "food-tomato", quantity: 6, expiry_date: addDaysIso(5), location: "Ngăn mát" },
       { fridge_item_id: "fridge-3", family_id, food_id: "food-onion", quantity: 2, expiry_date: addDaysIso(10), location: "Kệ thường" },
       { fridge_item_id: "fridge-4", family_id, food_id: "food-garlic", quantity: 1, expiry_date: addDaysIso(30), location: "Kệ thường" },

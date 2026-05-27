@@ -4,7 +4,7 @@ import { useMealPlanStore } from "@/modules/meal-plan/store/mealPlanStore";
 import type { RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import { Input } from "@/components/ui/input";
 
-const FILTERS = ["Tất cả", "Thịt", "Rau", "Healthy", "Low carb", "Nhanh"] as const;
+const FILTERS = ["Tất cả", "Thịt", "Rau", "Lành mạnh", "Ít tinh bột", "Nhanh"] as const;
 type Filter = (typeof FILTERS)[number];
 
 export function RecipePicker({ onSelect, disabled = false }: { onSelect: (recipe: RecipeDetail) => void; disabled?: boolean }) {

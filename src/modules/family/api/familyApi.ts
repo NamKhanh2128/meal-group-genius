@@ -33,6 +33,33 @@ export const familyApi = {
     saveDb(state);
     return { ...user, password: undefined };
   },
+  async addMemberById(family_id: string, user_id: string) {
+    const state = await db();
+    const user = state.users.find((item) => item.user_id === user_id);
+    if (!user) throw new Error("Không tìm thấy người dùng với ID này.");
+    if (state.family_members.some((item) => item.family_id === family_id && item.user_id === user.user_id)) throw new Error("Thành viên đã có trong gia đình.");
+    state.family_members.push({ id: uid("family-member"), family_id, user_id: user.user_id });
+    saveDb(state);
+    return { ...user, password: undefined };
+  },
+  async joinFamilyById(family_id: string, user_id: string) {
+    const state = await db();
+    const family = state.families.find((f) => f.family_id === family_id);
+    if (!family) throw new Error("Không tìm thấy gia đình với ID này.");
+    if (state.family_members.some((item) => item.family_id === family_id && item.user_id === user_id)) throw new Error("Bạn đã là thành viên của gia đình này.");
+    state.family_members.push({ id: uid("family-member"), family_id, user_id });
+    saveDb(state);
+    return family;
+  },
+  async createFamily(family_name: string, user_id: string) {
+    const state = await db();
+    const family_id = uid("family");
+    const family: Family = { family_id, family_name, created_by: user_id };
+    state.families.push(family);
+    state.family_members.push({ id: uid("family-member"), family_id, user_id });
+    saveDb(state);
+    return family;
+  },
   async assignShoppingTask(family_id: string, shopping_list_id: string, user_id: string, actor_id: string) {
     const state = await db();
     const list = state.shopping_lists.find((item) => item.family_id === family_id && item.shopping_list_id === shopping_list_id);
