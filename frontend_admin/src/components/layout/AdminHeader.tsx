@@ -13,6 +13,9 @@ import {
   CalendarDays,
   BarChart3,
   Settings,
+  ShoppingBag,
+  Refrigerator,
+  Activity,
 } from "lucide-react";
 import { useAdminAuthStore } from "@/store/authStore";
 import { useT } from "@/store/languageStore";
@@ -25,10 +28,13 @@ const navItems: { to: string; labelKey: TranslationKey; icon: React.ElementType 
   { to: "/dashboard", labelKey: "adminDashboard", icon: LayoutDashboard },
   { to: "/users", labelKey: "adminUsers", icon: Users },
   { to: "/families", labelKey: "adminFamilies", icon: Users2 },
+  { to: "/shopping-lists", labelKey: "adminShoppingLists", icon: ShoppingBag },
+  { to: "/inventories", labelKey: "adminInventories", icon: Refrigerator },
   { to: "/foods", labelKey: "adminFoods", icon: UtensilsCrossed },
   { to: "/recipes", labelKey: "adminRecipes", icon: BookOpen },
   { to: "/meals", labelKey: "adminMeals", icon: CalendarDays },
   { to: "/statistics", labelKey: "adminStatistics", icon: BarChart3 },
+  { to: "/activities", labelKey: "adminActivities", icon: Activity },
   { to: "/settings", labelKey: "adminSettings", icon: Settings },
 ];
 

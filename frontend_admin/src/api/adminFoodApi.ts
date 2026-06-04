@@ -64,12 +64,21 @@ export const adminFoodApi = {
     const index = state.foods.findIndex((f) => f.food_id === food_id);
     if (index < 0) throw new Error("Không tìm thấy thực phẩm.");
 
+    // Check if food is used in any recipes
+    const boundRecipes = state.recipes.filter((r) =>
+      state.recipe_ingredients.some((ri) => ri.recipe_id === r.recipe_id && ri.food_id === food_id)
+    );
+
+    if (boundRecipes.length > 0) {
+      const recipeNames = boundRecipes.map((r) => `"${r.recipe_name}"`).join(", ");
+      throw new Error(`Không thể xóa thực phẩm này vì đang cấu thành công thức: ${recipeNames}. Vui lòng chỉnh sửa các công thức này trước.`);
+    }
+
     // Remove food
     state.foods.splice(index, 1);
 
-    // Clean up related fridge items and recipe ingredients
+    // Clean up related fridge items and shopping items
     state.fridge_items = state.fridge_items.filter((fi) => fi.food_id !== food_id);
-    state.recipe_ingredients = state.recipe_ingredients.filter((ri) => ri.food_id !== food_id);
     state.shopping_list_items = state.shopping_list_items.filter((sli) => sli.food_id !== food_id);
 
     saveDb(state);
@@ -78,9 +87,18 @@ export const adminFoodApi = {
   async bulkDelete(food_ids: string[]): Promise<void> {
     const state = await db();
 
+    // Check if any of these foods are used in recipes
+    const boundRecipes = state.recipes.filter((r) =>
+      state.recipe_ingredients.some((ri) => ri.recipe_id === r.recipe_id && food_ids.includes(ri.food_id))
+    );
+
+    if (boundRecipes.length > 0) {
+      const recipeNames = boundRecipes.map((r) => `"${r.recipe_name}"`).join(", ");
+      throw new Error(`Không thể xóa các thực phẩm đã chọn vì đang cấu thành công thức: ${recipeNames}. Vui lòng chỉnh sửa các công thức này trước.`);
+    }
+
     state.foods = state.foods.filter((f) => !food_ids.includes(f.food_id));
     state.fridge_items = state.fridge_items.filter((fi) => !food_ids.includes(fi.food_id));
-    state.recipe_ingredients = state.recipe_ingredients.filter((ri) => !food_ids.includes(ri.food_id));
     state.shopping_list_items = state.shopping_list_items.filter((sli) => !food_ids.includes(sli.food_id));
 
     saveDb(state);

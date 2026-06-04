@@ -17,6 +17,9 @@ const MealListPage = lazy(() => import("@/pages/meals/MealListPage").then((m) =>
 const StatisticsPage = lazy(() => import("@/pages/statistics/StatisticsPage").then((m) => ({ default: m.StatisticsPage })));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const FamilyListPage = lazy(() => import("@/pages/families/FamilyListPage").then((m) => ({ default: m.FamilyListPage })));
+const ShoppingListPage = lazy(() => import("@/pages/shopping/ShoppingListPage").then((m) => ({ default: m.ShoppingListPage })));
+const InventoryListPage = lazy(() => import("@/pages/inventories/InventoryListPage").then((m) => ({ default: m.InventoryListPage })));
+const ActivityLogPage = lazy(() => import("@/pages/activities/ActivityLogPage").then((m) => ({ default: m.ActivityLogPage })));
 
 function PageLoader() {
   return (
@@ -220,6 +223,36 @@ export function AdminRouter() {
               <AdminErrorBoundary>
                 <Suspense fallback={<PageLoader />}>
                   <FamilyListPage />
+                </Suspense>
+              </AdminErrorBoundary>
+            }
+          />
+          <Route
+            path="/shopping-lists"
+            element={
+              <AdminErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <ShoppingListPage />
+                </Suspense>
+              </AdminErrorBoundary>
+            }
+          />
+          <Route
+            path="/inventories"
+            element={
+              <AdminErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <InventoryListPage />
+                </Suspense>
+              </AdminErrorBoundary>
+            }
+          />
+          <Route
+            path="/activities"
+            element={
+              <AdminErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <ActivityLogPage />
                 </Suspense>
               </AdminErrorBoundary>
             }

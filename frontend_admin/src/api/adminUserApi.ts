@@ -82,11 +82,28 @@ export const adminUserApi = {
     const index = state.users.findIndex((u) => u.user_id === user_id);
     if (index < 0) throw new Error("Không tìm thấy người dùng.");
 
+    const creatorFamilies = state.families.filter((f) => f.created_by === user_id);
+
     // Remove user
     state.users.splice(index, 1);
 
     // Clean up related family members
     state.family_members = state.family_members.filter((fm) => fm.user_id !== user_id);
+
+    // Cascade delete families
+    creatorFamilies.forEach((fam) => {
+      const family_id = fam.family_id;
+      state.families = state.families.filter((f) => f.family_id !== family_id);
+      state.family_members = state.family_members.filter((fm) => fm.family_id !== family_id);
+      state.fridge_items = state.fridge_items.filter((item) => item.family_id !== family_id);
+      state.shopping_lists = state.shopping_lists.filter((l) => l.family_id !== family_id);
+      state.meal_plans = state.meal_plans.filter((mp) => mp.family_id !== family_id);
+      state.family_activities = state.family_activities.filter((act) => act.family_id !== family_id);
+    });
+
+    state.shopping_list_items = state.shopping_list_items.filter((item) => {
+      return state.shopping_lists.some((l) => l.shopping_list_id === item.shopping_list_id);
+    });
 
     saveDb(state);
   },
@@ -100,10 +117,27 @@ export const adminUserApi = {
     }
 
     const state = await db();
+    const creatorFamilies = state.families.filter((f) => user_ids.includes(f.created_by));
+
     // Filter out users
     state.users = state.users.filter((u) => !user_ids.includes(u.user_id));
     // Clean up family members
     state.family_members = state.family_members.filter((fm) => !user_ids.includes(fm.user_id));
+
+    // Cascade delete families
+    creatorFamilies.forEach((fam) => {
+      const family_id = fam.family_id;
+      state.families = state.families.filter((f) => f.family_id !== family_id);
+      state.family_members = state.family_members.filter((fm) => fm.family_id !== family_id);
+      state.fridge_items = state.fridge_items.filter((item) => item.family_id !== family_id);
+      state.shopping_lists = state.shopping_lists.filter((l) => l.family_id !== family_id);
+      state.meal_plans = state.meal_plans.filter((mp) => mp.family_id !== family_id);
+      state.family_activities = state.family_activities.filter((act) => act.family_id !== family_id);
+    });
+
+    state.shopping_list_items = state.shopping_list_items.filter((item) => {
+      return state.shopping_lists.some((l) => l.shopping_list_id === item.shopping_list_id);
+    });
 
     saveDb(state);
   },

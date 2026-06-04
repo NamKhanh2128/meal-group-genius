@@ -44,10 +44,13 @@ export const translations = {
     adminDashboard: "Dashboard",
     adminUsers: "Người dùng",
     adminFamilies: "Nhóm gia đình",
+    adminShoppingLists: "Danh sách mua sắm",
+    adminInventories: "Tủ lạnh gia đình",
     adminFoods: "Thực phẩm",
     adminRecipes: "Công thức",
     adminMeals: "Bữa ăn",
     adminStatistics: "Thống kê",
+    adminActivities: "Nhật ký kiểm toán",
     adminSettings: "Cài đặt",
 
     // User management
@@ -182,10 +185,13 @@ export const translations = {
     adminDashboard: "Dashboard",
     adminUsers: "Users",
     adminFamilies: "Family Groups",
+    adminShoppingLists: "Shopping Lists",
+    adminInventories: "Family Fridges",
     adminFoods: "Foods",
     adminRecipes: "Recipes",
     adminMeals: "Meals",
     adminStatistics: "Statistics",
+    adminActivities: "Audit Logs",
     adminSettings: "Settings",
 
     userManagement: "User Management",
