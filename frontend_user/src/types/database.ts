@@ -36,6 +36,8 @@ export interface Recipe {
   calories: number;
   difficulty: string;
   is_favorite?: boolean;
+  created_by?: string;
+  servings?: number;
 }
 
 export interface RecipeIngredient {

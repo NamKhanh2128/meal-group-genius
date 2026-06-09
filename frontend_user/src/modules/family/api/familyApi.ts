@@ -94,4 +94,27 @@ export const familyApi = {
     });
     saveDb(state);
   },
+
+  async transferAdmin(family_id: string, fromUserId: string, toUserId: string) {
+    const state = await db();
+    const family = state.families.find((f) => f.family_id === family_id);
+    if (!family) throw new Error("Không tìm thấy gia đình.");
+    if (family.created_by !== fromUserId) throw new Error("Bạn không phải quản trị viên gia đình.");
+    if (fromUserId === toUserId) throw new Error("Không thể chuyển quyền cho chính mình.");
+    const isMember = state.family_members.some((m) => m.family_id === family_id && m.user_id === toUserId);
+    if (!isMember) throw new Error("Người được chuyển quyền không thuộc gia đình.");
+    family.created_by = toUserId;
+    state.family_activities.unshift({
+      id: uid("act"),
+      family_id,
+      user_id: fromUserId,
+      action_type: "family",
+      message: `chuyển quyền quản trị gia đình cho ${state.users.find((u) => u.user_id === toUserId)?.full_name ?? "thành viên"}`,
+      target: family.family_name,
+      status: "transferred",
+      created_at: new Date().toISOString(),
+    });
+    saveDb(state);
+    return family;
+  },
 };

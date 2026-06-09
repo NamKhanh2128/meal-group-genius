@@ -13,7 +13,6 @@ import {
   CalendarDays,
   BarChart3,
   Settings,
-  ShoppingBag,
   Refrigerator,
   Activity,
 } from "lucide-react";
@@ -28,7 +27,6 @@ const navItems: { to: string; labelKey: TranslationKey; icon: React.ElementType 
   { to: "/dashboard", labelKey: "adminDashboard", icon: LayoutDashboard },
   { to: "/users", labelKey: "adminUsers", icon: Users },
   { to: "/families", labelKey: "adminFamilies", icon: Users2 },
-  { to: "/shopping-lists", labelKey: "adminShoppingLists", icon: ShoppingBag },
   { to: "/inventories", labelKey: "adminInventories", icon: Refrigerator },
   { to: "/foods", labelKey: "adminFoods", icon: UtensilsCrossed },
   { to: "/recipes", labelKey: "adminRecipes", icon: BookOpen },

@@ -1,4 +1,4 @@
-import { Hash, MailPlus, Users } from "lucide-react";
+import { Hash, MailPlus, ShieldCheck, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/modules/auth/store/authStore";
@@ -16,6 +16,7 @@ import { relativeTime } from "@/shared/utils/date";
 export function FamilyPage() {
   const family = useAuthStore((state) => state.family)!;
   const user = useAuthStore((state) => state.user)!;
+  const refreshAuth = useAuthStore((state) => state.bootstrap);
   const [members, setMembers] = useState<User[]>([]);
   const [activities, setActivities] = useState<FamilyActivity[]>([]);
   const [shoppingTasks, setShoppingTasks] = useState<ShoppingListDetail[]>([]);
@@ -25,6 +26,12 @@ export function FamilyPage() {
   const [addByIdOpen, setAddByIdOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [incomingOpen, setIncomingOpen] = useState(false);
+
+  // Transfer admin state
+  const [transferTarget, setTransferTarget] = useState<User | null>(null);
+  const [transferOpen, setTransferOpen] = useState(false);
+
+  const isAdmin = family.created_by === user.user_id;
 
   async function reload() {
     const [familyData, lists] = await Promise.all([familyApi.detail(family.family_id), shoppingApi.list(family.family_id)]);
@@ -66,6 +73,21 @@ export function FamilyPage() {
     await reload();
   }
 
+  async function handleTransferAdmin() {
+    if (!transferTarget) return;
+    try {
+      await familyApi.transferAdmin(family.family_id, user.user_id, transferTarget.user_id);
+      toast.success(`Đã chuyển quyền quản trị cho ${transferTarget.full_name}.`);
+      setTransferTarget(null);
+      setTransferOpen(false);
+      // Refresh auth so family.created_by is updated in memory
+      await refreshAuth();
+      await reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Không thể chuyển quyền quản trị.");
+    }
+  }
+
   return (
     <>
       <ScreenHeader
@@ -86,21 +108,38 @@ export function FamilyPage() {
               <p className="py-4 text-center text-sm text-[#9188a1]">Chưa có thành viên nào.</p>
             ) : (
               <div className="space-y-2">
-                {members.map((member, index) => (
-                  <div key={member.user_id} className="rounded-[8px] bg-[#f8f6fb] p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <b>{member.full_name}</b>
-                        <p className="text-xs text-[#746d82]">{member.email}</p>
-                        <p className="mt-0.5 text-[10px] font-mono text-[#9188a1]">ID: {member.user_id}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="rounded-full bg-[#eee9f7] px-2 py-1 text-xs font-bold text-[#7655aa]">{index === 0 ? t("roleOwner") : t("roleMember")}</span>
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">{t("statusJoined")}</span>
+                {members.map((member) => {
+                  const isFamilyAdmin = member.user_id === family.created_by;
+                  const isSelf = member.user_id === user.user_id;
+                  return (
+                    <div key={member.user_id} className="rounded-[8px] bg-[#f8f6fb] p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <b>{member.full_name}</b>
+                          <p className="text-xs text-[#746d82]">{member.email}</p>
+                          <p className="mt-0.5 text-[10px] font-mono text-[#9188a1]">ID: {member.user_id}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`rounded-full px-2 py-1 text-xs font-bold ${isFamilyAdmin ? "bg-[#ffb11f]/20 text-[#b27200] border border-[#ffb11f]/30" : "bg-[#eee9f7] text-[#7655aa]"}`}>
+                            {isFamilyAdmin ? t("roleOwner") : t("roleMember")}
+                          </span>
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">{t("statusJoined")}</span>
+                          {/* Transfer Admin button: only visible to current admin, only on non-self, non-admin members */}
+                          {isAdmin && !isSelf && !isFamilyAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => { setTransferTarget(member); setTransferOpen(true); }}
+                              className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#7655aa]/30 bg-[#eee9f7] px-2 py-0.5 text-[10px] font-bold text-[#7655aa] transition hover:bg-[#7655aa] hover:text-white"
+                            >
+                              <ShieldCheck className="h-3 w-3" />
+                              Chuyển quyền Admin
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             <Button variant="outline" className="mt-4 w-full" onClick={() => setIncomingOpen(true)}>Xem invitation popup</Button>
@@ -139,9 +178,13 @@ export function FamilyPage() {
           </div>
         </div>
       </section>
+
+      {/* Invite by email */}
       <AppModal open={inviteOpen} onOpenChange={setInviteOpen} type="confirm" title="Gửi lời mời" primaryLabel="Gửi lời mời" secondaryLabel="Đóng" onPrimary={addMember}>
         <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Nhập email thành viên" />
       </AppModal>
+
+      {/* Add by ID */}
       <AppModal open={addByIdOpen} onOpenChange={setAddByIdOpen} type="confirm" title="Thêm thành viên qua ID" primaryLabel="Thêm" secondaryLabel="Đóng" onPrimary={addMemberById}>
         <div className="space-y-2">
           <p className="text-sm text-[#746d82]">Nhập User ID của người bạn muốn thêm vào gia đình.</p>
@@ -149,8 +192,30 @@ export function FamilyPage() {
           <p className="text-xs text-[#9188a1]">User ID có thể xem trong hồ sơ thành viên.</p>
         </div>
       </AppModal>
+
+      {/* Invitation popup */}
       <AppModal open={incomingOpen} onOpenChange={setIncomingOpen} type="info" title="Lời mời tham gia gia đình" primaryLabel="Chấp nhận" secondaryLabel="Từ chối" onPrimary={() => { toast.success("Đã chấp nhận lời mời."); }}>
         Bạn có lời mời tham gia một nhóm gia đình.
+      </AppModal>
+
+      {/* Transfer Admin Confirmation */}
+      <AppModal
+        open={transferOpen}
+        onOpenChange={(open) => { setTransferOpen(open); if (!open) setTransferTarget(null); }}
+        type="warning"
+        title="Chuyển quyền Quản trị?"
+        primaryLabel="Xác nhận chuyển quyền"
+        secondaryLabel="Hủy"
+        onPrimary={handleTransferAdmin}
+      >
+        <div className="space-y-3 text-sm text-[#5f586d]">
+          <p>Bạn sắp chuyển quyền quản trị gia đình cho:</p>
+          <div className="rounded-[8px] bg-[#f8f6fb] p-3">
+            <p className="font-extrabold text-[#252033]">{transferTarget?.full_name}</p>
+            <p className="text-xs text-[#746d82]">{transferTarget?.email}</p>
+          </div>
+          <p className="text-xs text-[#9188a1]">Sau khi chuyển, bạn sẽ trở thành thành viên thông thường và không còn quyền quản trị gia đình.</p>
+        </div>
       </AppModal>
     </>
   );

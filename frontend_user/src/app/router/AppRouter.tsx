@@ -1,16 +1,18 @@
-﻿import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import { useAuthStore } from "@/modules/auth/store/authStore";
 import { LoginPage } from "@/modules/auth/pages/LoginPage";
 import { RegisterPage } from "@/modules/auth/pages/RegisterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { FridgePage } from "@/modules/fridge/pages/FridgePage";
-import { FridgeFormPage } from "@/modules/fridge/pages/FridgeFormPage";
 import { ShoppingPage } from "@/modules/shopping/pages/ShoppingPage";
 import { ShoppingCreatePage } from "@/modules/shopping/pages/ShoppingCreatePage";
 import { ShoppingDetailPage } from "@/modules/shopping/pages/ShoppingDetailPage";
 import { MealPlanPage } from "@/modules/meal-plan/pages/MealPlanPage";
+import { RecipeListPage } from "@/modules/recipe/pages/RecipeListPage";
 import { RecipeDetailPage } from "@/modules/recipe/pages/RecipeDetailPage";
+import { RecipeFavoritesPage } from "@/modules/recipe/pages/RecipeFavoritesPage";
+import { RecipePersonalPage } from "@/modules/recipe/pages/RecipePersonalPage";
+import { RecipeFormPage } from "@/modules/recipe/pages/RecipeFormPage";
 import { FamilyPage } from "@/modules/family/pages/FamilyPage";
 import { ProfilePage } from "@/modules/auth/pages/ProfilePage";
 import { ChangePasswordPage } from "@/modules/auth/pages/ChangePasswordPage";
@@ -41,10 +43,6 @@ export function AppRouter() {
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/fridge" element={<FridgePage />} />
-          <Route path="/fridge/add" element={<FridgeFormPage mode="add" />} />
-          <Route path="/fridge/:id" element={<FridgeFormPage mode="edit" />} />
-          <Route path="/fridge/edit/:id" element={<FridgeFormPage mode="edit" />} />
           <Route path="/shopping" element={<ShoppingPage />} />
           <Route path="/shopping/create" element={<ShoppingCreatePage />} />
           <Route path="/shopping/:id" element={<ShoppingDetailPage />} />
@@ -54,10 +52,15 @@ export function AppRouter() {
           <Route path="/meal-plan/calendar" element={<Navigate to="/meal-planner" replace />} />
           <Route path="/meal-planner/create" element={<Navigate to="/meal-planner" replace />} />
           <Route path="/meal-planner/calendar" element={<Navigate to="/meal-planner" replace />} />
+          {/* Recipe routes — ordered most-specific first */}
+          <Route path="/recipes/favorites" element={<RecipeFavoritesPage />} />
+          <Route path="/recipes/personal" element={<RecipePersonalPage />} />
+          <Route path="/recipes/new" element={<RecipeFormPage mode="create" />} />
+          <Route path="/recipes/edit/:id" element={<RecipeFormPage mode="edit" />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-          <Route path="/suggestions" element={<Navigate to="/meal-planner" replace />} />
-          <Route path="/recipes" element={<Navigate to="/meal-planner" replace />} />
-          <Route path="/favorites" element={<Navigate to="/meal-planner" replace />} />
+          <Route path="/recipes" element={<RecipeListPage />} />
+          <Route path="/suggestions" element={<Navigate to="/recipes" replace />} />
+          <Route path="/favorites" element={<Navigate to="/recipes/favorites" replace />} />
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/family" element={<FamilyPage />} />
           <Route path="/profile" element={<ProfilePage />} />

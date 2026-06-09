@@ -1,11 +1,11 @@
-import { BarChart2, Home, Refrigerator, ScrollText, ShoppingCart, UserRound } from "lucide-react";
+import { BarChart2, BookOpen, Home, ScrollText, ShoppingCart, UserRound } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const items = [
   { to: "/dashboard", label: "Trang chủ", icon: Home },
-  { to: "/fridge", label: "Tủ lạnh", icon: Refrigerator },
   { to: "/shopping", label: "Mua sắm", icon: ShoppingCart },
   { to: "/meal-planner", label: "Thực đơn", icon: ScrollText },
+  { to: "/recipes", label: "Công thức", icon: BookOpen },
   { to: "/statistics", label: "Thống kê", icon: BarChart2 },
   { to: "/profile", label: "Hồ sơ", icon: UserRound },
 ];

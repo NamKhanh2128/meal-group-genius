@@ -1,22 +1,20 @@
-﻿import { AlertCircle, CheckCircle2, Clock, Flame, Lightbulb, Play, Refrigerator, ScrollText, ShoppingCart, Star } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, Flame, Lightbulb, Play, ScrollText, ShoppingCart, Star } from "lucide-react";
 import { useT } from "@/shared/store/languageStore";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/modules/auth/store/authStore";
-import { fridgeApi, type FridgeRow } from "@/modules/fridge/api/fridgeApi";
 import { recipeApi, type RecipeDetail } from "@/modules/recipe/api/recipeApi";
 import { shoppingApi, type ShoppingListDetail } from "@/modules/shopping/api/shoppingApi";
 import { mealApi } from "@/modules/meal-plan/api/mealApi";
 import { familyApi } from "@/modules/family/api/familyApi";
 import type { FamilyActivity, MealPlanGroup, RecipeSuggestion, User } from "@/types";
-import { daysUntil, formatDate, relativeTime, todayIso } from "@/shared/utils/date";
+import { formatDate, relativeTime, todayIso } from "@/shared/utils/date";
 import { Button } from "@/components/ui/button";
 import { AppModal } from "@/shared/components/AppModal";
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user)!;
   const family = useAuthStore((state) => state.family)!;
-  const [fridge, setFridge] = useState<FridgeRow[]>([]);
   const [shopping, setShopping] = useState<ShoppingListDetail[]>([]);
   const [meals, setMeals] = useState<MealPlanGroup[]>([]);
   const [recipes, setRecipes] = useState<RecipeDetail[]>([]);
@@ -28,7 +26,6 @@ export function DashboardPage() {
 
   useEffect(() => {
     void Promise.all([
-      fridgeApi.list(family.family_id).then(setFridge),
       shoppingApi.list(family.family_id).then(setShopping),
       mealApi.grouped(family.family_id).then(setMeals),
       recipeApi.list().then(setRecipes),
@@ -42,7 +39,6 @@ export function DashboardPage() {
 
   const suggestion = suggestions[0];
   const activeList = shopping.find((list) => list.status === "DRAFT") ?? shopping[0];
-  const expiring = fridge.filter((item) => daysUntil(item.expiry_date) <= 4).sort((a, b) => daysUntil(a.expiry_date) - daysUntil(b.expiry_date));
   const todayMeals = meals.filter((item) => item.meal_date === todayIso());
 
   const mealCards = useMemo(() => todayMeals.map((meal) => ({
@@ -58,7 +54,7 @@ export function DashboardPage() {
       <section className="mx-auto max-w-[1324px]">
         <div className="mb-8 text-white">
           <h1 className="text-4xl font-extrabold tracking-normal md:text-5xl">Chào {user.full_name}!</h1>
-          <p className="mt-4 text-lg text-white/72">Tủ lạnh: {fridge.length} món · {expiring.length} sắp hết hạn · {suggestions.length} món gợi ý hôm nay</p>
+          <p className="mt-4 text-lg text-white/72">{suggestions.length} gợi ý món ăn hôm nay · {shopping.filter((l) => l.status === "DRAFT").length} danh sách mua sắm đang soạn</p>
         </div>
 
         {suggestion && (
@@ -70,11 +66,12 @@ export function DashboardPage() {
                 <span className="inline-flex rounded-full bg-[#b98493] px-5 py-2 text-xs font-extrabold uppercase tracking-wide">Gợi ý hôm nay</span>
                 <h2 className="mt-5 max-w-xl text-4xl font-extrabold leading-tight">{suggestion.recipe.recipe_name}<br />từ nguyên liệu sẵn có</h2>
                 <div className="mt-5 space-y-2 text-base">
-                  <div className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#34d77b]" />Có sẵn: {suggestion.available_food_ids.map((id) => fridge.find((f) => f.food_id === id)?.food.food_name).filter(Boolean).join(", ") || "Đang kiểm tra"}</div>
-                  <div className="flex gap-2"><AlertCircle className="h-5 w-5 text-[#ff5d75]" />Còn thiếu: {suggestion.missing.map((item) => item.food.food_name).join(", ") || "Đủ nguyên liệu"}</div>
+                  <div className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#34d77b]" />Còn thiếu: {suggestion.missing.map((item) => item.food.food_name).join(", ") || "Đủ nguyên liệu"}</div>
+                  <div className="flex gap-2"><AlertCircle className="h-5 w-5 text-[#ff5d75]" />Số nguyên liệu thiếu: {suggestion.missing.length} loại</div>
                 </div>
                 <div className="mt-7 flex flex-wrap gap-3">
                   <Button asChild className="h-12 rounded-[10px] bg-[#ffad1f] px-7 font-bold hover:bg-[#f2a21a]"><Link to={`/recipes/${suggestion.recipe.recipe_id}`}>Xem công thức</Link></Button>
+                  <Button asChild variant="outline" className="h-12 rounded-[10px] border-white/30 bg-white/10 px-7 font-bold text-white hover:bg-white/20"><Link to="/recipes">Khám phá thêm</Link></Button>
                 </div>
               </div>
               <div className="space-y-6 border-l border-white/10 pl-6">
@@ -111,6 +108,13 @@ export function DashboardPage() {
                   </div>
                 </div>
               ))}
+              {mealCards.length === 0 && (
+                <div className="col-span-3 rounded-[12px] bg-white p-6 text-center text-sm text-[#9188a1]">
+                  <ScrollText className="mx-auto mb-3 h-8 w-8 text-[#c4b9d8]" />
+                  <p>Chưa có thực đơn hôm nay.</p>
+                  <Link to="/meal-planner" className="mt-3 inline-block rounded-lg bg-[#7655aa] px-4 py-2 text-xs font-bold text-white">Lên kế hoạch</Link>
+                </div>
+              )}
             </div>
           </section>
 
@@ -135,48 +139,28 @@ export function DashboardPage() {
                 <Link to={`/shopping/${activeList.shopping_list_id}`} className="mt-6 block rounded-[12px] bg-gradient-to-r from-[#3488ed] to-[#5659f0] py-3 text-center text-sm font-bold text-white">Xem tất cả</Link>
               </section>
             )}
+
+            {/* Recipe suggestions quick list */}
             <section className="rounded-[20px] bg-white p-6 shadow-card">
-              <div className="mb-4 flex items-center justify-between"><b className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500" />Sắp hết hạn</b><Link to="/fridge" className="text-xs font-bold text-[#7655aa]">Mở tủ lạnh</Link></div>
-              <div className="space-y-3">
-                {expiring.slice(0, 2).map((item) => <div key={item.fridge_item_id} className="flex items-center gap-3 rounded-[12px] bg-[#fff0f1] p-3"><span className="text-2xl">{item.food.icon}</span><div className="flex-1"><b>{item.food.food_name}</b><p className="text-xs text-[#9a5f66]">Hết hạn: {formatDate(item.expiry_date)}</p></div><span className="rounded-[8px] bg-[#ef3d3d] px-3 py-2 text-xs font-bold text-white">{daysUntil(item.expiry_date)} ngày</span></div>)}
+              <div className="mb-4 flex items-center justify-between">
+                <b className="flex items-center gap-2"><Lightbulb className="h-4 w-4 text-[#ffb11f]" />Gợi ý nấu ăn</b>
+                <Link to="/recipes" className="text-xs font-bold text-[#7655aa]">Xem tất cả</Link>
+              </div>
+              <div className="space-y-2">
+                {suggestions.slice(0, 3).map((s) => (
+                  <Link key={s.recipe.recipe_id} to={`/recipes/${s.recipe.recipe_id}`} className="flex items-center gap-3 rounded-[12px] bg-[#f8f6fb] p-3 transition hover:bg-[#eee9f7]">
+                    {s.recipe.image_url && <img src={s.recipe.image_url} className="h-10 w-10 rounded-[8px] object-cover" alt={s.recipe.recipe_name} />}
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-bold">{s.recipe.recipe_name}</p>
+                      <p className="text-xs text-[#9188a1]">Thiếu {s.missing.length} nguyên liệu · {s.recipe.time_minutes} phút</p>
+                    </div>
+                  </Link>
+                ))}
+                {suggestions.length === 0 && <p className="text-sm text-[#9188a1]">Không có gợi ý nào.</p>}
               </div>
             </section>
           </aside>
         </div>
-
-        {/* Smart Insights */}
-        {(expiring.length > 0 || fridge.length === 0) && (
-          <section className="mt-6 rounded-[20px] bg-gradient-to-r from-[#7655aa] to-[#9b7cc9] p-6 text-white shadow-card">
-            <div className="mb-4 flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-[#ffbd2c]" />
-              <span className="text-sm font-extrabold uppercase tracking-wide">Gợi ý thông minh</span>
-            </div>
-            <div className="space-y-3">
-              {expiring.length > 0 && (
-                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
-                  <span className="mt-0.5 text-xl">⏰</span>
-                  <p className="text-sm">
-                    Sử dụng <strong>{expiring[0]?.food.food_name}</strong> trước ngày <strong>{expiring[0] ? expiring[0].expiry_date : ""}</strong> để tránh lãng phí.
-                  </p>
-                </div>
-              )}
-              {expiring.length > 2 && (
-                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
-                  <span className="mt-0.5 text-xl">🗑️</span>
-                  <p className="text-sm">
-                    Bạn có <strong>{expiring.length} thực phẩm</strong> sắp hết hạn. Lên kế hoạch bữa ăn để giảm lãng phí.
-                  </p>
-                </div>
-              )}
-              {fridge.length === 0 && (
-                <div className="flex items-start gap-3 rounded-xl bg-white/15 p-3">
-                  <span className="mt-0.5 text-xl">🛒</span>
-                  <p className="text-sm">Tủ lạnh đang trống! Hãy tạo danh sách mua sắm để bổ sung thực phẩm.</p>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
         <section className="mt-6 rounded-[20px] bg-white p-6 shadow-card lg:w-[calc(100%-458px)]">
           <div className="inline-flex rounded-full bg-[#f0ecfb] px-3 py-1 text-xs font-bold text-[#7655aa]">{t("activityFeed")}</div>
@@ -228,6 +212,6 @@ function Metric({ icon, label, value, green }: { icon: React.ReactNode; label: s
 
 function ActivityIcon({ type }: { type: string }) {
   if (type === "shopping") return <ShoppingCart className="h-4 w-4 text-[#e0a323]" />;
-  if (type === "fridge") return <Refrigerator className="h-4 w-4 text-[#4ba8ef]" />;
+  if (type === "recipe") return <Star className="h-4 w-4 text-[#ffb11f]" />;
   return <ScrollText className="h-4 w-4 text-[#31c875]" />;
 }

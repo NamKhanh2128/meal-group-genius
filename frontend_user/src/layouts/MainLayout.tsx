@@ -1,4 +1,4 @@
-﻿import { BarChart2, Home, LogOut, Plus, Refrigerator, ScrollText, ShoppingCart, Users, UserRound } from "lucide-react";
+import { BarChart2, BookOpen, Home, LogOut, Plus, ScrollText, ShoppingCart, Users, UserRound } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,9 +9,9 @@ import { AppModal } from "@/shared/components/AppModal";
 
 const navItems = [
   { to: "/dashboard", label: "Trang chủ", icon: Home },
-  { to: "/fridge", label: "Tủ lạnh", icon: Refrigerator },
   { to: "/shopping", label: "Danh sách mua sắm", icon: ShoppingCart },
   { to: "/meal-planner", label: "Kế hoạch bữa ăn", icon: ScrollText },
+  { to: "/recipes", label: "Công thức", icon: BookOpen },
   { to: "/statistics", label: "Thống kê", icon: BarChart2 },
   { to: "/family", label: "Gia đình", icon: Users },
   { to: "/profile", label: "Hồ sơ", icon: UserRound },

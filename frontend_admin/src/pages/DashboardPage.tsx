@@ -5,7 +5,6 @@ import {
   BookOpen,
   Users2,
   CalendarDays,
-  ShoppingBag,
   TrendingUp,
   Activity,
   Loader2,
@@ -53,9 +52,7 @@ export function DashboardPage() {
 
   // States for detailed popup modals
   const [families, setFamilies] = useState<any[]>([]);
-  const [shoppingLists, setShoppingLists] = useState<any[]>([]);
   const [familiesOpen, setFamiliesOpen] = useState(false);
-  const [shoppingOpen, setShoppingOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
 
   const handleOpenFamilies = async () => {
@@ -66,19 +63,6 @@ export function DashboardPage() {
       setFamilies(data);
     } catch (error) {
       console.error("Lỗi khi tải danh sách gia đình:", error);
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const handleOpenShopping = async () => {
-    setShoppingOpen(true);
-    setModalLoading(true);
-    try {
-      const data = await adminStatsApi.getShoppingLists();
-      setShoppingLists(data);
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách mua sắm:", error);
     } finally {
       setModalLoading(false);
     }
@@ -186,7 +170,7 @@ export function DashboardPage() {
       />
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
           title={t("statTotalUsers")}
           value={loading ? "..." : summary?.totalUsers ?? 0}
@@ -226,14 +210,6 @@ export function DashboardPage() {
           color="success"
           trend={{ value: 18, label: "bữa ăn được chuẩn bị", positive: true }}
           to="/meals"
-        />
-        <StatCard
-          title={t("statActiveShopping")}
-          value={loading ? "..." : summary?.activeShopping ?? 0}
-          icon={ShoppingBag}
-          color="destructive"
-          trend={{ value: 2, label: "danh sách đang soạn", positive: false }}
-          onClick={handleOpenShopping}
         />
       </div>
 
@@ -474,56 +450,6 @@ export function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Shopping Lists Detail Dialog */}
-      <Dialog open={shoppingOpen} onOpenChange={setShoppingOpen}>
-        <DialogContent className="rounded-[20px] max-w-2xl bg-card border border-border/50">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2 text-destructive">
-              <ShoppingBag className="h-5 w-5" /> Danh Sách Mua Sắm Đang Soạn
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 max-h-[400px] overflow-y-auto">
-            {modalLoading ? (
-              <div className="flex h-32 items-center justify-center gap-2 text-muted-foreground text-sm font-semibold">
-                <Loader2 className="h-5 w-5 animate-spin" /> Đang tải dữ liệu...
-              </div>
-            ) : shoppingLists.length === 0 ? (
-              <div className="py-8 text-center text-xs font-semibold text-muted-foreground">
-                Không có danh sách mua sắm nào đang soạn.
-              </div>
-            ) : (
-              <div className="border border-border/40 rounded-xl overflow-hidden">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-[#fbfacb]/80 border-b border-border/40">
-                    <tr>
-                      <th className="p-3 font-bold text-foreground">Tên danh sách</th>
-                      <th className="p-3 font-bold text-foreground">Người lập</th>
-                      <th className="p-3 font-bold text-foreground">Ngày dự kiến</th>
-                      <th className="p-3 font-bold text-foreground text-center">Số sản phẩm</th>
-                      <th className="p-3 font-bold text-foreground text-center">Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shoppingLists.map((s) => (
-                      <tr key={s.shopping_list_id} className="border-b border-border/20 last:border-0 hover:bg-muted/40 transition">
-                        <td className="p-3 font-bold text-foreground">{s.title}</td>
-                        <td className="p-3 font-semibold text-muted-foreground">{s.creatorName}</td>
-                        <td className="p-3 font-semibold text-muted-foreground">{s.plan_date}</td>
-                        <td className="p-3 font-bold text-center text-primary">{s.itemCount}</td>
-                        <td className="p-3 text-center">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                            {s.status === "DRAFT" ? "Đang soạn" : s.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
